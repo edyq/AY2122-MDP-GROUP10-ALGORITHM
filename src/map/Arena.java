@@ -21,7 +21,7 @@ public class Arena extends JPanel {
 
     public Arena(Robot bot) {
         this.bot = bot;
-        System.out.printf("Bot at %d, %d\n",bot.getX(), bot.getY());
+        System.out.printf("Bot at %d, %d\n", bot.getX(), bot.getY());
         obstacles = new HashMap<Integer, PictureObstacle>();
         numberOfObstacles = 0;
     }
@@ -60,5 +60,7 @@ public class Arena extends JPanel {
         return obstacles;
     }
 
-    public Robot getRobot() { return bot; }
+    public Robot getRobot() {
+        return bot;
+    }
 }

@@ -23,9 +23,9 @@ public class Node {
         this.y = y;
         this.dim = dim;
         this.hasBeenVisited = false;
-        this.gCost=0;
-        this.hCost=0;
-        this.totalCost=0;
+        this.gCost = 0;
+        this.hCost = 0;
+        this.totalCost = 0;
     }
 
     public void setHasBeenVisited(boolean hasBeenVisited) {
@@ -74,7 +74,9 @@ public class Node {
         return y;
     }
 
-    public int getDim() {return dim;}
+    public int getDim() {
+        return dim;
+    }
 
     public double getCost() {
         return totalCost;

@@ -44,18 +44,18 @@ public class Simulator {
         //bot = new Robot(new Point(5,15), RobotConstants.ROBOT_DIRECTION.EAST, false);
         arena = new Arena(bot);
 
-        arena.addPictureObstacle(0,0,IMAGE_DIRECTION.EAST);
-        arena.addPictureObstacle(15,0,IMAGE_DIRECTION.SOUTH);
-        arena.addPictureObstacle(18,18,IMAGE_DIRECTION.NORTH);
-        arena.addPictureObstacle(9,15,IMAGE_DIRECTION.WEST);
-        arena.addPictureObstacle(9,13,IMAGE_DIRECTION.WEST);
+        arena.addPictureObstacle(0, 0, IMAGE_DIRECTION.EAST);
+        arena.addPictureObstacle(15, 0, IMAGE_DIRECTION.SOUTH);
+        arena.addPictureObstacle(18, 18, IMAGE_DIRECTION.NORTH);
+        arena.addPictureObstacle(9, 15, IMAGE_DIRECTION.WEST);
+        arena.addPictureObstacle(9, 13, IMAGE_DIRECTION.WEST);
         //arena.addPictureObstacle(18,11,IMAGE_DIRECTION.SOUTH);
-        arena.addPictureObstacle(2,11,IMAGE_DIRECTION.SOUTH);
+        arena.addPictureObstacle(2, 11, IMAGE_DIRECTION.SOUTH);
         fast = new FastestPathAlgo(arena);
         algo = new TripPlannerAlgo(arena);
         int[] path = fast.planFastestPath();
         System.out.print("Shortest path: ");
-        for (int i: path) System.out.print(i + ", ");
+        for (int i : path) System.out.print(i + ", ");
         System.out.println();
         doThePath(path);
         //algo.displayMap();
@@ -73,24 +73,24 @@ public class Simulator {
             next = map.get(i);
             System.out.println("---------------Path " + count + "---------------");
             System.out.println(next.getX() + ", " + next.getY());
-            algo.planPath(next.getX(),next.getY(), next.getImadeDirectionAngle(), RobotConstants.TURN_RADIUS,true, true);
+            algo.planPath(next.getX(), next.getY(), next.getImadeDirectionAngle(), RobotConstants.TURN_RADIUS, true, true);
             int x = next.getX();
             int y = next.getY();
-            switch(next.getImadeDirectionAngle()) { // simulate backing up
+            switch (next.getImadeDirectionAngle()) { // simulate backing up
                 case 0:
-                    bot.setCenterCoordinate(new Point(x+4,y));
+                    bot.setCenterCoordinate(new Point(x + 4, y));
                     bot.setDirection(RobotConstants.ROBOT_DIRECTION.WEST);
                     break;
                 case 90:
-                    bot.setCenterCoordinate(new Point(x,y-4));
+                    bot.setCenterCoordinate(new Point(x, y - 4));
                     bot.setDirection(RobotConstants.ROBOT_DIRECTION.SOUTH);
                     break;
                 case 180:
-                    bot.setCenterCoordinate(new Point(x-4,y));
+                    bot.setCenterCoordinate(new Point(x - 4, y));
                     bot.setDirection(RobotConstants.ROBOT_DIRECTION.EAST);
                     break;
                 case 270:
-                    bot.setCenterCoordinate(new Point(x,y+4));
+                    bot.setCenterCoordinate(new Point(x, y + 4));
                     bot.setDirection(RobotConstants.ROBOT_DIRECTION.NORTH);
                     break;
                 default:

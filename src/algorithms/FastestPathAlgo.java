@@ -23,7 +23,7 @@ public class FastestPathAlgo {
     public int[] planFastestPath() {
         Map<Integer, PictureObstacle> map = arena.getObstacles();
         TripPlannerAlgo algo = new TripPlannerAlgo(arena);
-        List<int[]> permutations = getPermutations(arena.getObstacles().keySet().stream().mapToInt(i->i).toArray());
+        List<int[]> permutations = getPermutations(arena.getObstacles().keySet().stream().mapToInt(i -> i).toArray());
         double smallestCost = Double.MAX_VALUE;
         int[] shortestPath = permutations.get(0);
         for (int[] permutation : permutations) {
