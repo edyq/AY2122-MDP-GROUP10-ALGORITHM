@@ -123,26 +123,27 @@ public class TripPlannerAlgo {
      * @return
      */
     private int[] getGoalNodePosition(int x, int y, int dir) {
+        int dist = AlgoConstants.DISTANCE_FROM_GOAL;
         int[] coords = new int[3];
         switch (dir) {
             case 0:
-                coords[0] = x + 2;
+                coords[0] = x + dist;
                 coords[1] = y;
                 coords[2] = 180;
                 break;
             case 90:
                 coords[0] = x;
-                coords[1] = y - 2;
+                coords[1] = y - dist;
                 coords[2] = 270;
                 break;
             case 180:
-                coords[0] = x - 2;
+                coords[0] = x - dist;
                 coords[1] = y;
                 coords[2] = 0;
                 break;
             case 270:
                 coords[0] = x;
-                coords[1] = y + 2;
+                coords[1] = y + dist;
                 coords[2] = 90;
                 break;
             default:
@@ -396,7 +397,6 @@ public class TripPlannerAlgo {
      * Heuristic algorithm using manhattan distance from start node to end node.
      */
     private double heuristic(Node n1, Node n2, int endDim) {
-        // TODO: modify heuristic such that it takes into account the direction of the car as well. (Maybe prefer directions in the same way as the goal direction?)
         // TODO: if using multiple goals, heuristic should be the minimum value of the h-cost to each end node.
         int abs1 = Math.abs(n1.getX() - n2.getX());
         int abs2 = Math.abs(n1.getY() - n2.getY());
@@ -528,14 +528,14 @@ public class TripPlannerAlgo {
 
             grid[y][x][angleDimension].setPicture(true);
             grid[y][x][angleDimension].setPictureId(id);
-            int[][] pairs = getVirtualObstaclePairs(x, y);
+            int[][] pairs = getVirtualObstaclePairs(x, y, AlgoConstants.BORDER_THICKNESS);
             int xVirtual, yVirtual;
             // set the surrounding nodes to be virtual obstacles
             for (int[] pair : pairs) {
                 xVirtual = pair[0];
                 yVirtual = pair[1];
                 for (int i = 0; i < 4; i++) {
-                    if (xVirtual >= 0 && xVirtual < 20 && yVirtual >= 0 && yVirtual < 20) { // is the given pair a valid location
+                    if (xVirtual >= 0 && xVirtual < numCells && yVirtual >= 0 && yVirtual < numCells) { // is the given pair a valid location
                         grid[yVirtual][xVirtual][i].setVirtualObstacle(true);
                     }
                 }
@@ -555,9 +555,10 @@ public class TripPlannerAlgo {
 
     /**
      * get the locations of the virtual obstacles in terms of pairs [x,y] given a specific x,y
+     * TODO: set thickness of virtual obstacles
      */
-    private int[][] getVirtualObstaclePairs(int x, int y) {
-        int[][] pairArray = new int[8][];
+    private int[][] getVirtualObstaclePairs(int x, int y, int thickness) {
+        /*
         pairArray[0] = new int[]{x, y - 1};
         pairArray[1] = new int[]{x + 1, y - 1};
         pairArray[2] = new int[]{x + 1, y};
@@ -566,26 +567,25 @@ public class TripPlannerAlgo {
         pairArray[5] = new int[]{x - 1, y + 1};
         pairArray[6] = new int[]{x - 1, y};
         pairArray[7] = new int[]{x - 1, y - 1};
+        */
+        int numCol = 1+2*thickness;
+        int numPairs = numCol*numCol-1; // how many pairs we must generate
 
-        return pairArray;
-    }
-
-    /**
-     * print the current status of the arena
-     */
-    public void displayMap() {
-        for (int y = 0; y < 20; y++) {
-            for (int x = 0; x < 20; x++) {
-                if (x == arena.getRobot().getX() && y == arena.getRobot().getY()) System.out.print("R ");
-                else if (grid[y][x][0].isPicture()) System.out.print("E ");
-                else if (grid[y][x][1].isPicture()) System.out.print("N ");
-                else if (grid[y][x][2].isPicture()) System.out.print("W ");
-                else if (grid[y][x][3].isPicture()) System.out.print("S ");
-                else if (grid[y][x][0].isVirtualObstacle()) System.out.print("o ");
-                else System.out.print("- ");
+        int[][] pairArray = new int[numPairs][];
+        int[][] coordinateArray = new int[numCol][numCol];
+        int dim = coordinateArray.length;
+        int relativeCenter = dim / 2;
+        int counter = 0;
+        int c = 0;
+        for (int y1 = 0; y1 < dim; y1++) {
+            for (int x1 = 0; x1 < dim; x1++) {
+                if (x1 != relativeCenter || y1 != relativeCenter) {
+                    pairArray[counter] = new int[]{x+x1-thickness,y+y1-thickness};
+                    counter++;
+                }
             }
-            System.out.println();
         }
+        return pairArray;
     }
 
     public void printPath(List<Node> path) {
@@ -597,7 +597,7 @@ public class TripPlannerAlgo {
                 else if (grid[y][x][1].isPicture()) printArray[y][x] = 'N';
                 else if (grid[y][x][2].isPicture()) printArray[y][x] = 'W';
                 else if (grid[y][x][3].isPicture()) printArray[y][x] = 'S';
-                else if (grid[y][x][0].isVirtualObstacle()) printArray[y][x] = 'o';
+                else if (grid[y][x][0].isVirtualObstacle()) printArray[y][x] = '/';
                 else printArray[y][x] = '-';
             }
         }
@@ -626,7 +626,7 @@ public class TripPlannerAlgo {
 
         for (int y = 0; y < 20; y++) {
             for (int x = 0; x < 20; x++) {
-                System.out.print(printArray[y][x] + " ");
+                System.out.print(printArray[y][x] + "  ");
             }
             System.out.println();
         }

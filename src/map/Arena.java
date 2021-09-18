@@ -2,12 +2,9 @@ package map;
 
 import robot.Robot;
 import robot.RobotConstants;
-import map.MapConstants;
 
 import javax.swing.*;
 import java.lang.Math;
-import java.awt.*;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 

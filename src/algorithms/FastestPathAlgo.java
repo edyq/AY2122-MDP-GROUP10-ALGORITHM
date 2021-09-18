@@ -90,19 +90,19 @@ public class FastestPathAlgo {
             int y = next.getY();
             switch (next.getImadeDirectionAngle()) { // simulate backing up
                 case 0:
-                    bot.setCenterCoordinate(new Point(x + 4, y));
+                    bot.setCenterCoordinate(new Point(x + (AlgoConstants.DISTANCE_FROM_GOAL+2), y));
                     bot.setDirection(RobotConstants.ROBOT_DIRECTION.WEST);
                     break;
                 case 90:
-                    bot.setCenterCoordinate(new Point(x, y - 4));
+                    bot.setCenterCoordinate(new Point(x, y - (AlgoConstants.DISTANCE_FROM_GOAL+2)));
                     bot.setDirection(RobotConstants.ROBOT_DIRECTION.SOUTH);
                     break;
                 case 180:
-                    bot.setCenterCoordinate(new Point(x - 4, y));
+                    bot.setCenterCoordinate(new Point(x - (AlgoConstants.DISTANCE_FROM_GOAL+2), y));
                     bot.setDirection(RobotConstants.ROBOT_DIRECTION.EAST);
                     break;
                 case 270:
-                    bot.setCenterCoordinate(new Point(x, y + 4));
+                    bot.setCenterCoordinate(new Point(x, y + (AlgoConstants.DISTANCE_FROM_GOAL+2)));
                     bot.setDirection(RobotConstants.ROBOT_DIRECTION.NORTH);
                     break;
                 default:

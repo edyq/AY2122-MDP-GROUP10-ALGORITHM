@@ -1,7 +1,5 @@
 package robot;
 
-import map.MapConstants;
-
 import java.awt.*;
 
 public class RobotConstants {

@@ -3,7 +3,6 @@ package simulator;
 import algorithms.FastestPathAlgo;
 import algorithms.TripPlannerAlgo;
 import map.Arena;
-import map.MapConstants;
 import map.MapConstants.IMAGE_DIRECTION;
 import map.PictureObstacle;
 import robot.Robot;
@@ -12,13 +11,10 @@ import robot.RobotConstants;
 // TODO: switch to javafx
 
 import javax.swing.*;
-import javax.swing.border.Border;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.Flow;
 
 /**
  * This class should be executed when running simulation,
@@ -47,8 +43,8 @@ public class Simulator {
         arena.addPictureObstacle(0, 0, IMAGE_DIRECTION.EAST);
         arena.addPictureObstacle(15, 0, IMAGE_DIRECTION.SOUTH);
         arena.addPictureObstacle(18, 18, IMAGE_DIRECTION.NORTH);
-        arena.addPictureObstacle(9, 15, IMAGE_DIRECTION.WEST);
-        arena.addPictureObstacle(9, 13, IMAGE_DIRECTION.WEST);
+        arena.addPictureObstacle(10, 15, IMAGE_DIRECTION.WEST);
+        arena.addPictureObstacle(10, 13, IMAGE_DIRECTION.WEST);
         //arena.addPictureObstacle(18,11,IMAGE_DIRECTION.SOUTH);
         arena.addPictureObstacle(2, 11, IMAGE_DIRECTION.SOUTH);
         fast = new FastestPathAlgo(arena);
@@ -62,7 +58,7 @@ public class Simulator {
         //algo.planPath(18,16,270,22);
         //algo.planPath(5,13,0,22);
 
-        //display();
+        display();
     }
 
     private static void doThePath(int[] path) {
@@ -78,19 +74,19 @@ public class Simulator {
             int y = next.getY();
             switch (next.getImadeDirectionAngle()) { // simulate backing up
                 case 0:
-                    bot.setCenterCoordinate(new Point(x + 4, y));
+                    bot.setCenterCoordinate(new Point(x + 6, y));
                     bot.setDirection(RobotConstants.ROBOT_DIRECTION.WEST);
                     break;
                 case 90:
-                    bot.setCenterCoordinate(new Point(x, y - 4));
+                    bot.setCenterCoordinate(new Point(x, y - 6));
                     bot.setDirection(RobotConstants.ROBOT_DIRECTION.SOUTH);
                     break;
                 case 180:
-                    bot.setCenterCoordinate(new Point(x - 4, y));
+                    bot.setCenterCoordinate(new Point(x - 6, y));
                     bot.setDirection(RobotConstants.ROBOT_DIRECTION.EAST);
                     break;
                 case 270:
-                    bot.setCenterCoordinate(new Point(x, y + 4));
+                    bot.setCenterCoordinate(new Point(x, y + 6));
                     bot.setDirection(RobotConstants.ROBOT_DIRECTION.NORTH);
                     break;
                 default:
