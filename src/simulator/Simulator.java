@@ -14,6 +14,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.ArrayList;
 import java.util.Map;
 
 /**
@@ -63,14 +64,18 @@ public class Simulator {
 
     private static void doThePath(int[] path) {
         algo.constructMap();
-        Map<Integer, PictureObstacle> map = arena.getObstacles();
+        ArrayList<PictureObstacle> map = arena.getObstacles();
+        Robot r = arena.getRobot();
+        int startX = r.getX();
+        int startY = r.getY();
+        int startAngle = r.getRobotDirectionAngle();
         PictureObstacle next;
         int count = 0;
         for (int i : path) {
             next = map.get(i);
             System.out.println("---------------Path " + count + "---------------");
             System.out.println(next.getX() + ", " + next.getY());
-            algo.planPath(next.getX(), next.getY(), next.getImadeDirectionAngle(), RobotConstants.TURN_RADIUS, true, true);
+            algo.planPath(startX, startY, startAngle, next.getX(), next.getY(), next.getImadeDirectionAngle(), RobotConstants.TURN_RADIUS, true, true);
             /*
             int x = next.getX();
             int y = next.getY();
@@ -95,8 +100,11 @@ public class Simulator {
             }
              */
             int[] coords = algo.getReverseCoordinates(next);
-            bot.setCenterCoordinate(new Point(coords[0], coords[1]));
-            bot.setDirection(coords[2]);
+            //bot.setCenterCoordinate(new Point(coords[0], coords[1]));
+            //bot.setDirection(coords[2]);
+            startX = coords[0];
+            startY = coords[1];
+            startAngle = coords[2];
             count++;
         }
     }

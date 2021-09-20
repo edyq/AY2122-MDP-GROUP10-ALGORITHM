@@ -8,6 +8,7 @@ import robot.RobotConstants;
 import java.awt.*;
 import java.util.*;
 import java.util.List;
+import java.util.stream.IntStream;
 
 /**
  * This class will be used to find the fasted path to visit all obstacles
@@ -21,9 +22,11 @@ public class FastestPathAlgo {
     }
 
     public int[] planFastestPath() {
-        Map<Integer, PictureObstacle> map = arena.getObstacles();
+        //Map<Integer, PictureObstacle> map = arena.getObstacles();
+        ArrayList<PictureObstacle> list = Arena.getObstacles();
         TripPlannerAlgo algo = new TripPlannerAlgo(arena);
-        List<int[]> permutations = getPermutations(arena.getObstacles().keySet().stream().mapToInt(i -> i).toArray());
+        int[] indexArray = IntStream.range(0, list.size()).toArray();
+        List<int[]> permutations = getPermutations(indexArray); //getPermutations(Arena.getObstacles().keySet().stream().mapToInt(i -> i).toArray());
         double smallestCost = Double.MAX_VALUE;
         int[] shortestPath = permutations.get(0);
         for (int[] permutation : permutations) {
@@ -33,7 +36,7 @@ public class FastestPathAlgo {
             //    coordinates.add(arena.getObstacles().get(key).getCenterCoordinate());
             //}
             //double pathDistance = getPathDistance(coordinates);
-            double pathCost = getPathCost(permutation, map, algo);
+            double pathCost = getPathCost(permutation, list, algo);
             if (pathCost < smallestCost) {
                 smallestCost = pathCost;
                 shortestPath = permutation;
@@ -77,19 +80,25 @@ public class FastestPathAlgo {
     }
      */
 
-    private double getPathCost(int[] path, Map<Integer, PictureObstacle> map, TripPlannerAlgo algo) {
+    private double getPathCost(int[] path, ArrayList<PictureObstacle> list, TripPlannerAlgo algo) {
         //double pathDistance = 0.0;
         PictureObstacle next;
         Robot bot = arena.getRobot();
+        int startX = bot.getX();
+        int startY = bot.getY();
+        int startAngle = bot.getRobotDirectionAngle();
         double cost;
         algo.constructMap();
         for (int i : path) {
-            next = map.get(i);
-            algo.planPath(next.getX(), next.getY(), next.getImadeDirectionAngle(), RobotConstants.TURN_RADIUS, false, false);
+            next = list.get(i);
+            algo.planPath(startX, startY, startAngle, next.getX(), next.getY(), next.getImadeDirectionAngle(), RobotConstants.TURN_RADIUS, false, false);
             // do the reverse before finding the next path
             int[] coords = algo.getReverseCoordinates(next);
-            bot.setCenterCoordinate(new Point(coords[0], coords[1]));
-            bot.setDirection(coords[2]);
+            //bot.setCenterCoordinate(new Point(coords[0], coords[1]));
+            //bot.setDirection(coords[2]);
+            startX = coords[0];
+            startY = coords[1];
+            startAngle = coords[2];
         }
         cost = algo.getTotalCost();
         algo.clearCost();

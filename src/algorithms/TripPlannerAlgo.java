@@ -61,16 +61,16 @@ public class TripPlannerAlgo {
          */
     }
 
-    private void clear() {
+    private void clear(int startX, int startY, int startAngle) {
         predMap.clear();
         constructMap();
 
-        int robotX = arena.getRobot().getX();
-        int robotY = arena.getRobot().getY();
-        int robotDirection = arena.getRobot().getRobotDirectionAngle();
-        int angleDimension = angleToDimension(robotDirection);
+        //int robotX = arena.getRobot().getX();
+        //int robotY = arena.getRobot().getY();
+        //int robotDirection = arena.getRobot().getRobotDirectionAngle();
+        int angleDimension = angleToDimension(startAngle);
 
-        this.currentNode = grid[robotY][robotX][angleDimension];
+        this.currentNode = grid[startY][startX][angleDimension];
 
         // initialize the arrays
         int numCells = MapConstants.ARENA_WIDTH / MapConstants.OBSTACLE_WIDTH;
@@ -93,7 +93,7 @@ public class TripPlannerAlgo {
         visitQueue.clear();
         this.visitQueue.add(currentNode);
         //greedyCostArray[robotY][robotX][angleDimension] = 0;
-        grid[robotY][robotX][angleDimension].setCost(0, 0);
+        grid[startY][startX][angleDimension].setCost(0, 0);
     }
 
     /**
@@ -183,8 +183,8 @@ public class TripPlannerAlgo {
      * <p>
      * input: the x,y, and direction of the picture obstacle, the robot's turn radius
      */
-    public ArrayList<MoveType> planPath(int pictureX, int pictureY, int pictureDirInDegrees, double turnRadius, boolean doBacktrack, boolean print) {
-        clear();
+    public ArrayList<MoveType> planPath(int startX, int startY, int startAngle, int pictureX, int pictureY, int pictureDirInDegrees, double turnRadius, boolean doBacktrack, boolean print) {
+        clear(startX, startY, startAngle);
         int[] goal = getGoalNodePosition(pictureX, pictureY, pictureDirInDegrees);
         int endX = goal[0];
         int endY = goal[1];
@@ -197,8 +197,8 @@ public class TripPlannerAlgo {
         // this is the counter for the turnArray. Only when turnArray[y][x] = turnMaxCount is a turn allowed to be made.
         int x, y, dim;
 
-        Robot r = arena.getRobot();
-        turningArray[r.getY()][r.getX()][angleToDimension(r.getRobotDirectionAngle())] = maxTurnCount - 2; // make robot starting position half the required grids to turn.
+        //Robot r = arena.getRobot();
+        turningArray[startY][startX][angleToDimension(startAngle)] = maxTurnCount - 2; // make robot starting position half the required grids to turn.
         Node nextNode;
         int[] forwardLocation, leftLocation, rightLocation;
         int nextX, nextY, nextDim, currentTurnCount;
@@ -541,7 +541,8 @@ public class TripPlannerAlgo {
      * Instantiate the grid map.
      */
     public void constructMap() {
-        Map<Integer, PictureObstacle> pictureObstacleMap = arena.getObstacles();
+        //Map<Integer, PictureObstacle> pictureObstacleMap = arena.getObstacles();
+        ArrayList<PictureObstacle> pictureObstacleList = arena.getObstacles();
 
         grid = new Node[numCells][numCells][4]; // instantiate the grid (we assume it is a square grid), and that we have 4 possible cardinal directions
         // fill up the grid map
@@ -555,10 +556,10 @@ public class TripPlannerAlgo {
 
         int angleDimension, x, y, id;
         // set picture nodes to isObstacle = true
-        for (PictureObstacle pictures : pictureObstacleMap.values()) {
+        for (PictureObstacle pictures : pictureObstacleList) { //pictureObstacleMap.values()
             x = pictures.getX();
             y = pictures.getY();
-            id = pictures.getKey();
+            id = pictureObstacleList.indexOf(pictures);//pictures.getKey();
             angleDimension = angleToDimension(pictures.getImadeDirectionAngle()); // calculate the correct angle dimension the picture node is set in.
 
             grid[y][x][angleDimension].setPicture(true);
@@ -649,8 +650,8 @@ public class TripPlannerAlgo {
         char[][] printArray = new char[20][20];
         for (int y = 0; y < 20; y++) {
             for (int x = 0; x < 20; x++) {
-                if (x == arena.getRobot().getX() && y == arena.getRobot().getY()) printArray[y][x] = 'R';
-                else if (grid[y][x][0].isPicture()) printArray[y][x] = 'E';
+                //if (x == arena.getRobot().getX() && y == arena.getRobot().getY()) printArray[y][x] = 'R';
+                if (grid[y][x][0].isPicture()) printArray[y][x] = 'E';
                 else if (grid[y][x][1].isPicture()) printArray[y][x] = 'N';
                 else if (grid[y][x][2].isPicture()) printArray[y][x] = 'W';
                 else if (grid[y][x][3].isPicture()) printArray[y][x] = 'S';
@@ -680,6 +681,7 @@ public class TripPlannerAlgo {
             if (n.getX() == arena.getRobot().getX() && n.getY() == arena.getRobot().getY())
                 printArray[n.getY()][n.getX()] = 'R';
         }
+        printArray[path.get(0).getY()][path.get(0).getX()] = 'R';
 
         for (int y = 0; y < 20; y++) {
             for (int x = 0; x < 20; x++) {
