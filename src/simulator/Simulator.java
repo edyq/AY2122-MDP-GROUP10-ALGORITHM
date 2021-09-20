@@ -62,6 +62,7 @@ public class Simulator {
     }
 
     private static void doThePath(int[] path) {
+        algo.constructMap();
         Map<Integer, PictureObstacle> map = arena.getObstacles();
         PictureObstacle next;
         int count = 0;
@@ -70,11 +71,12 @@ public class Simulator {
             System.out.println("---------------Path " + count + "---------------");
             System.out.println(next.getX() + ", " + next.getY());
             algo.planPath(next.getX(), next.getY(), next.getImadeDirectionAngle(), RobotConstants.TURN_RADIUS, true, true);
+            /*
             int x = next.getX();
             int y = next.getY();
             switch (next.getImadeDirectionAngle()) { // simulate backing up
                 case 0:
-                    bot.setCenterCoordinate(new Point(x + 6, y));
+                    bot.setCenterCoordinate(new Point(x + 5, y));
                     bot.setDirection(RobotConstants.ROBOT_DIRECTION.WEST);
                     break;
                 case 90:
@@ -91,6 +93,10 @@ public class Simulator {
                     break;
                 default:
             }
+             */
+            int[] coords = algo.getReverseCoordinates(next);
+            bot.setCenterCoordinate(new Point(coords[0], coords[1]));
+            bot.setDirection(coords[2]);
             count++;
         }
     }

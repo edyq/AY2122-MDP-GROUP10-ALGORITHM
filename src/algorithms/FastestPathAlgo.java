@@ -13,7 +13,7 @@ import java.util.List;
  * This class will be used to find the fasted path to visit all obstacles
  */
 public class FastestPathAlgo {
-    private Arena arena;
+    private final Arena arena;
 
 
     public FastestPathAlgo(Arena arena) {
@@ -27,7 +27,7 @@ public class FastestPathAlgo {
         double smallestCost = Double.MAX_VALUE;
         int[] shortestPath = permutations.get(0);
         for (int[] permutation : permutations) {
-            ArrayList<Point> coordinates = new ArrayList<Point>();
+            //ArrayList<Point> coordinates = new ArrayList<Point>();
             //coordinates.add(RobotConstants.ROBOT_INITIAL_CENTER_COORDINATES);
             //for (int key : permutation) {
             //    coordinates.add(arena.getObstacles().get(key).getCenterCoordinate());
@@ -67,7 +67,7 @@ public class FastestPathAlgo {
             swap(tempPermutation, i, n - 1);
         }
     }
-
+    /*
     private double getPathDistance(ArrayList<Point> coordinates) {
         double pathDistance = 0.0;
         for (int i = 0; i < coordinates.size() - 1; i++) {
@@ -75,38 +75,21 @@ public class FastestPathAlgo {
         }
         return pathDistance;
     }
+     */
 
     private double getPathCost(int[] path, Map<Integer, PictureObstacle> map, TripPlannerAlgo algo) {
         //double pathDistance = 0.0;
         PictureObstacle next;
         Robot bot = arena.getRobot();
-        double cost = 0.0;
+        double cost;
+        algo.constructMap();
         for (int i : path) {
             next = map.get(i);
-            //System.out.println("---------------Path " + count + "---------------");
-            //System.out.println(next.getX() + ", " + next.getY());
             algo.planPath(next.getX(), next.getY(), next.getImadeDirectionAngle(), RobotConstants.TURN_RADIUS, false, false);
-            int x = next.getX();
-            int y = next.getY();
-            switch (next.getImadeDirectionAngle()) { // simulate backing up
-                case 0:
-                    bot.setCenterCoordinate(new Point(x + (AlgoConstants.DISTANCE_FROM_GOAL+2), y));
-                    bot.setDirection(RobotConstants.ROBOT_DIRECTION.WEST);
-                    break;
-                case 90:
-                    bot.setCenterCoordinate(new Point(x, y - (AlgoConstants.DISTANCE_FROM_GOAL+2)));
-                    bot.setDirection(RobotConstants.ROBOT_DIRECTION.SOUTH);
-                    break;
-                case 180:
-                    bot.setCenterCoordinate(new Point(x - (AlgoConstants.DISTANCE_FROM_GOAL+2), y));
-                    bot.setDirection(RobotConstants.ROBOT_DIRECTION.EAST);
-                    break;
-                case 270:
-                    bot.setCenterCoordinate(new Point(x, y + (AlgoConstants.DISTANCE_FROM_GOAL+2)));
-                    bot.setDirection(RobotConstants.ROBOT_DIRECTION.NORTH);
-                    break;
-                default:
-            }
+            // do the reverse before finding the next path
+            int[] coords = algo.getReverseCoordinates(next);
+            bot.setCenterCoordinate(new Point(coords[0], coords[1]));
+            bot.setDirection(coords[2]);
         }
         cost = algo.getTotalCost();
         algo.clearCost();
@@ -114,8 +97,9 @@ public class FastestPathAlgo {
         bot.setDirection(RobotConstants.ROBOT_DIRECTION.NORTH);
         return cost;
     }
-
+    /*
     private double getDistance(Point p1, Point p2) {
         return Math.hypot(p1.x - p2.x, p1.y - p2.y);
     }
+     */
 }

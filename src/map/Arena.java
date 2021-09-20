@@ -13,7 +13,7 @@ import java.util.Map;
  */
 public class Arena extends JPanel {
     private static Map<Integer, PictureObstacle> obstacles;
-    private final Robot bot;
+    private static Robot bot;
     private static int numberOfObstacles;
 
     public Arena(Robot bot) {
