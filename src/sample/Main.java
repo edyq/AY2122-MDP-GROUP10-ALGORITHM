@@ -75,7 +75,10 @@ public class Main extends Application {
         arenaPane.setMinWidth(arenaSize);
         arenaPane.setMinHeight(arenaSize);
         arenaPane.setBackground(new Background(new BackgroundFill(drawGridLines(), new CornerRadii(0), null)));
-
+        // draw starting position
+        Rectangle start = new Rectangle (0, 17*gridSize,3*gridSize, 3*gridSize);
+        start.setFill(Color.GRAY);
+        arenaPane.getChildren().add(start);
         // draw robot
         //int robotXPos =
         Rectangle robot = new Rectangle(0,0,23*scale, 20*scale);
