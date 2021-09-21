@@ -83,8 +83,8 @@ public class Main extends Application {
         robot.setX(robotCoords.getX()*gridSize-robot.getWidth()/4);
         robot.setY(robotCoords.getY()*gridSize-robot.getHeight()/4);
         System.out.println(robot.getX());
-        Stop[] stops = new Stop[] { new Stop(0, Color.BLACK), new Stop(0.99, Color.RED)};
-        LinearGradient lg1 = new LinearGradient(0, 0, 1, 0, true, CycleMethod.NO_CYCLE, stops);
+        Stop[] stops = new Stop[] { new Stop(0, Color.BLACK), new Stop(1, Color.RED)};
+        LinearGradient lg1 = new LinearGradient(0.7, 0, 1, 0, true, CycleMethod.NO_CYCLE, stops);
         robot.setFill(lg1);
         //robot.setFill(ViewConstants.ROBOT_COLOR);
         robot.setStrokeWidth(20);
