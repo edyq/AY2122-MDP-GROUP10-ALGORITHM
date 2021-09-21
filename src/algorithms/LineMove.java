@@ -7,7 +7,7 @@ public class LineMove extends MoveType {
 
     @Override
     public double getLength() {
-        double x1 = getY1();
+        double x1 = getX1();
         double y1 = getY1();
         double x2 = getX2();
         double y2 = getY2();

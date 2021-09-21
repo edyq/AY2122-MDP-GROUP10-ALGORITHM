@@ -43,6 +43,17 @@ public abstract class MoveType {
         return y2;
     }
 
+    public void reverse() { // for the last ending portion
+        double diff;
+        if (x1 == x2) {
+            diff = y2-y1;
+            y2 = y1-diff;
+        } else if (y1 == y2) {
+            diff = x2-x1;
+            x2 = x1-diff;
+        }
+    }
+
     @Override
     public String toString() {
         return "<" + x1 + ", " + y1 + ">, <" + x2 + ", " + y2 + ">, dir = " + dirInDegrees;

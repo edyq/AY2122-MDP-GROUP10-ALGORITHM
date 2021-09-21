@@ -64,10 +64,6 @@ public class TripPlannerAlgo {
     private void clear(int startX, int startY, int startAngle) {
         predMap.clear();
         constructMap();
-
-        //int robotX = arena.getRobot().getX();
-        //int robotY = arena.getRobot().getY();
-        //int robotDirection = arena.getRobot().getRobotDirectionAngle();
         int angleDimension = angleToDimension(startAngle);
 
         this.currentNode = grid[startY][startX][angleDimension];
@@ -184,6 +180,10 @@ public class TripPlannerAlgo {
      * input: the x,y, and direction of the picture obstacle, the robot's turn radius
      */
     public ArrayList<MoveType> planPath(int startX, int startY, int startAngle, int pictureX, int pictureY, int pictureDirInDegrees, double turnRadius, boolean doBacktrack, boolean print) {
+        if (0 > startX || startX >= numCells || 0 > startY || startY >= numCells) { // start is outside of bounds
+            this.totalCost += 9999;
+            return null;
+        }
         clear(startX, startY, startAngle);
         int[] goal = getGoalNodePosition(pictureX, pictureY, pictureDirInDegrees);
         int endX = goal[0];
@@ -205,25 +205,20 @@ public class TripPlannerAlgo {
         double currentGCost, hCost, gCost;
         // lets start searching, baby
         // TODO: need a way to revisit nodes, especially if the goal is found but in an undesirable state (i.e. we are still making a turn)
-        //System.out.println("Pathing...");
         while (!goalFound && !visitQueue.isEmpty()) {
-            //System.out.println(visitQueue.size());
             currentNode = visitQueue.remove(); // Fetch the head of the priority queue
 
             x = currentNode.getX();
             y = currentNode.getY();
             dim = currentNode.getDim(); // 0 = east, 1 = north, 2 = west, 3 = south (counter-clockwise)
             currentTurnCount = turningArray[y][x][dim];
-            //currentCost = currentNode.getCost();
             currentGCost = currentNode.getGCost();
 
             if (currentNode == goalNode) {      // we have found the goal
                 // TODO: consider multiple goal states? (i.e. the nodes to the left and right of the goal node as well)
                 if (currentTurnCount < maxTurnCount - 2) { // we are still turning when we reached the goal state - thus, we cannot end the search.
-                    //System.out.println("Goal reached, but still turning");
                     continue; // go to the next iteration, and hope we rediscover the goal node again when we are not turning this time
                 }
-                //System.out.println("Found goal");
                 goalFound = true; // otherwise, we are good to go (search over)!
                 break;
             }
@@ -301,7 +296,6 @@ public class TripPlannerAlgo {
             currentNode.setHasBeenVisited(true);
         }
         if (!goalFound) {
-            //System.out.println("Path could not be found to the specified node");
             this.totalCost += 9999;
             return null;
         }
@@ -309,7 +303,6 @@ public class TripPlannerAlgo {
             path = backtrack(goalNode, turnRadius, print);
         }
         if (print && doBacktrack) {
-            //System.out.println("path found yey");
             System.out.println("Total cost: " + goalNode.getGCost());
             System.out.println("Nodes expanded: " + predMap.size());
         }
@@ -325,6 +318,7 @@ public class TripPlannerAlgo {
     public int[] getReverseCoordinates(PictureObstacle obs) {
         int x = obs.getX();
         int y = obs.getY();
+        System.out.println("Obstacle at: " + x + ", " + y);
         int minReverse = AlgoConstants.DISTANCE_FROM_GOAL+calculateTurnSize(RobotConstants.TURN_RADIUS)-1;
         int[] goalArray;
         switch (obs.getImadeDirectionAngle()) { // TODO: replace with an algorithm to determine the best back up distance. (Maybe reverse to the closest legal position to the next goal?)
@@ -463,9 +457,8 @@ public class TripPlannerAlgo {
         curr = predMap.get(end);
         int midpoint = MapConstants.OBSTACLE_WIDTH / 2;
         double[] lineEnd = new double[]{end.getX() * MapConstants.OBSTACLE_WIDTH + midpoint, end.getY() * MapConstants.OBSTACLE_WIDTH + midpoint}; // keep track of the end point(x2,y2) of the line segment
-        //System.out.println(lineEnd[1]);
         double[] lineStart = new double[2];
-        //System.out.println(lineEnd[0] + ", " + lineEnd[1]);
+
         int prevDir = curr.getDim();
         double newEndX, newEndY;
         int dirInDegrees;
@@ -473,11 +466,10 @@ public class TripPlannerAlgo {
             path.add(curr);
             next = predMap.get(curr);
             dirInDegrees = prevDir*90;
-            if (next == null) {
+            if (next == null) { // this is the starting line
                 lineStart[0] = curr.getX() * MapConstants.OBSTACLE_WIDTH + midpoint;
                 lineStart[1] = curr.getY() * MapConstants.OBSTACLE_WIDTH + midpoint;
                 pathSegments.add(new LineMove(lineStart[0], lineStart[1], lineEnd[0], lineEnd[1], dirInDegrees, true));
-                // TODO: add a curve in between also
             } else if (next.getDim() != prevDir) { // if direction changes, record the point at which that occurs
                 lineStart[0] = next.getX() * MapConstants.OBSTACLE_WIDTH + midpoint;
                 lineStart[1] = next.getY() * MapConstants.OBSTACLE_WIDTH + midpoint;
@@ -520,11 +512,11 @@ public class TripPlannerAlgo {
             }
             curr = next;
         }
-
         Collections.reverse(path); // reverse the path and put it in the correct order
         if (print) printPath(path);
+        if (pathSegments.get(0).getLength() <= 2) pathSegments.get(0).reverse();
         Collections.reverse(pathSegments);
-        //for (MoveType line : pathSegments) System.out.println(line.toString());
+
         return pathSegments;
     }
 
@@ -576,9 +568,6 @@ public class TripPlannerAlgo {
                     }
                 }
             }
-
-
-            //System.out.printf("Node %d at %d, %d\n", id, x, y);
         }
 
         //constructMap();
@@ -613,9 +602,6 @@ public class TripPlannerAlgo {
         this.visitQueue.add(currentNode);
         //greedyCostArray[robotY][robotX][angleDimension] = 0;
         grid[robotY][robotX][angleDimension].setCost(0, 0);
-
-        //System.out.println("Map construction finished");
-        //System.out.println(greedy(0,0,18,18));
     }
 
     private int angleToDimension(int angle) {
@@ -650,7 +636,6 @@ public class TripPlannerAlgo {
         char[][] printArray = new char[20][20];
         for (int y = 0; y < 20; y++) {
             for (int x = 0; x < 20; x++) {
-                //if (x == arena.getRobot().getX() && y == arena.getRobot().getY()) printArray[y][x] = 'R';
                 if (grid[y][x][0].isPicture()) printArray[y][x] = 'E';
                 else if (grid[y][x][1].isPicture()) printArray[y][x] = 'N';
                 else if (grid[y][x][2].isPicture()) printArray[y][x] = 'W';

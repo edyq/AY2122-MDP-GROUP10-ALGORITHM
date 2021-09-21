@@ -41,12 +41,12 @@ public class Simulator {
         //bot = new Robot(new Point(5,15), RobotConstants.ROBOT_DIRECTION.EAST, false);
         arena = new Arena(bot);
 
-        arena.addPictureObstacle(0, 0, IMAGE_DIRECTION.EAST);
-        arena.addPictureObstacle(15, 0, IMAGE_DIRECTION.SOUTH);
+        //arena.addPictureObstacle(16, 11, IMAGE_DIRECTION.EAST);
+        //arena.addPictureObstacle(15, 0, IMAGE_DIRECTION.SOUTH);
         arena.addPictureObstacle(18, 18, IMAGE_DIRECTION.NORTH);
         arena.addPictureObstacle(10, 15, IMAGE_DIRECTION.WEST);
         arena.addPictureObstacle(10, 13, IMAGE_DIRECTION.WEST);
-        //arena.addPictureObstacle(18,11,IMAGE_DIRECTION.SOUTH);
+        arena.addPictureObstacle(18,11,IMAGE_DIRECTION.SOUTH);
         arena.addPictureObstacle(2, 11, IMAGE_DIRECTION.SOUTH);
         fast = new FastestPathAlgo(arena);
         algo = new TripPlannerAlgo(arena);

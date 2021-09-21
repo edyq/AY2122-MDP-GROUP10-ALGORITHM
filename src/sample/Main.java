@@ -42,6 +42,7 @@ import robot.RobotConstants;
 
 import java.awt.*;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.Locale;
 import java.util.function.UnaryOperator;
 
@@ -76,13 +77,14 @@ public class Main extends Application {
 
         // draw robot
         //int robotXPos =
-        Rectangle robot = new Rectangle(0,0,20*scale, 23*scale);
+        Rectangle robot = new Rectangle(0,0,23*scale, 20*scale);
         Point robotCoords= RobotConstants.ROBOT_INITIAL_CENTER_COORDINATES;
         robot.setX(robotCoords.getX()*gridSize-robot.getWidth()/4);
         robot.setY(robotCoords.getY()*gridSize-robot.getHeight()/4);
         System.out.println(robot.getX());
         robot.setFill(ViewConstants.ROBOT_COLOR);
         robot.setStrokeWidth(20);
+        robot.setRotate(90);
         //robot.setX()
         arenaPane.getChildren().addAll(robot);
         //arenaPane.getChildren().addAll(animateRobot());
@@ -198,10 +200,10 @@ public class Main extends Application {
             startCoords = algo.getReverseCoordinates(n);
         }
         label.setText(text);
-
-        for (ArrayList<MoveType> moves : moveList) {
-            seqT.getChildren().add(getPathAnimation(robot, moves));
-        }
+        seqT = getPathAnimation(robot, moveList);
+        //for (ArrayList<MoveType> moves : moveList) {
+        //    seqT.getChildren().add(getPathAnimation(robot, moves));
+        //}
         seqT.play();
     }
 
@@ -231,78 +233,80 @@ public class Main extends Application {
 
     }
 
-    private PathTransition getPathAnimation(Rectangle robot, ArrayList<MoveType> pathList) {
+    private SequentialTransition getPathAnimation(Rectangle robot, ArrayList<ArrayList<MoveType>> pathList) {
         //Creating a Path
-        Path path = new Path();
-
+        //Path path = new Path();
+        SequentialTransition seqT = new SequentialTransition();
         //Moving to the starting point
-        MoveType start = pathList.get(0);
-        double startX = robot.getX();
-        double startY = robot.getY();
-        int startDir = start.getDirInDegrees();
+        MoveType start = pathList.get(0).get(0);
+        int startDir;
         double radius;
+        double nextX = start.getX1();
+        double nextY = start.getY1();
         int endDir;
-        System.out.print(robot.getX());
-        MoveTo moveTo = new MoveTo(startX, startY);
-        path.getElements().add(moveTo);
-        System.out.println(startX);
 
-        for (MoveType move : pathList) {
-            if (move.isLine()) { // moving straight
-                LineTo line = new LineTo(move.getX2()*gridSize, move.getY2()*gridSize);
-                path.getElements().add(line);
-                //System.out.println(move.getX2()*gridSize);
-                //System.out.println(startX);
-            } else { // its a turn
-                ArcTo turn = new ArcTo();
-                radius = move.getRadius()*scale;
-                turn.setRadiusX(radius);
-                turn.setRadiusY(radius);
-                endDir = move.getDirInDegrees();
+        ArrayList<MoveType> paths;
+        int len = pathList.size();
+        for (int i = 0; i < len; i++) {
+            Path path = new Path();
+            paths = pathList.get(i);
+            MoveTo moveTo = new MoveTo(nextX*scale, nextY*scale);
+            path.getElements().add(moveTo);
+            startDir = paths.get(0).getDirInDegrees();
+            for (MoveType move : paths) {
+                if (move.isLine()) { // moving straight
+                    LineTo line = new LineTo(move.getX2() * scale, move.getY2() * scale);
+                    path.getElements().add(line);
+                    startDir = move.getDirInDegrees();
+                } else { // its a turn
+                    endDir = move.getDirInDegrees();
+                    ArcTo turn = new ArcTo();
+                    radius = move.getRadius() * scale;
+                    turn.setRadiusX(radius);
+                    turn.setRadiusY(radius);
+                    turn.setX(move.getX2() * scale);
+                    turn.setY(move.getY2() * scale);
+                    turn.setSweepFlag(true);
+                    //if (startDir == 90 && endDir == 180) turn.setSweepFlag(true);
+                    if (startDir == 270) turn.setSweepFlag(false);
+                    else if (startDir == 0 && endDir == 90) turn.setSweepFlag(false);
+                    else if (startDir == 180) turn.setSweepFlag(false);
+                    else if (startDir == 90 && endDir == 180) turn.setSweepFlag(false);
+                    startDir = move.getDirInDegrees();
+                /*
                 if ((startDir == 0 || endDir == 0) && (startDir == 90 || endDir == 90)) {
-                    turn.setX(move.getX1()*gridSize+radius); turn.setY(move.getY1()*gridSize-radius);
+                    turn.setX(move.getX1()*scale+radius); turn.setY(move.getY1()*scale-radius);
                 } else if ((startDir == 90 || endDir == 90) && (startDir == 180 || endDir == 180)) {
-                    turn.setX(move.getX1()*gridSize-radius); turn.setY(move.getY1()*gridSize-radius);
+                    turn.setX(move.getX1()*scale-radius); turn.setY(move.getY1()*scale-radius);
                 } else if ((startDir == 180 || endDir == 180) && (startDir == 270 || endDir == 270)) {
-                    turn.setX(move.getX1()*gridSize-radius); turn.setY(move.getY1()*gridSize+radius);
+                    turn.setX(move.getX1()*scale-radius); turn.setY(move.getY1()*scale+radius);
                 } else if ((startDir == 270 || endDir == 270) && (startDir == 0 || endDir == 0)) {
-                    turn.setX(move.getX1()*gridSize+radius); turn.setY(move.getY1()*gridSize+radius);
+                    turn.setX(move.getX1()*scale+radius); turn.setY(move.getY1()*scale+radius);
                 }
-                path.getElements().add(turn);
+                 */
+                    path.getElements().add(turn);
+                }
             }
+            if (i < len-1) { // not the last path, so we perform a reverse
+                nextX = pathList.get(i+1).get(0).getX1();
+                nextY = pathList.get(i+1).get(0).getY1();
+                //System.out.println(nextX + ", " + nextY);
+                LineTo line = new LineTo(nextX*scale, nextY*scale);
+                path.getElements().add(line);
+            }
+            PathTransition pathTransition = new PathTransition();
+            pathTransition.setDuration(Duration.millis(1000));
+            pathTransition.setNode(robot);
+            pathTransition.setPath(path);
+            pathTransition.setOrientation(
+                    PathTransition.OrientationType.ORTHOGONAL_TO_TANGENT);
+            pathTransition.setCycleCount(0);
+            pathTransition.setAutoReverse(false);
+            pathTransition.setDuration(Duration.millis(10000));
+            pathTransition.setInterpolator(Interpolator.LINEAR);
+            seqT.getChildren().add(pathTransition);
         }
-
-
-        //Adding all the elements to the path
-
-        //Creating the path transition
-        PathTransition pathTransition = new PathTransition();
-
-        //Setting the duration of the transition
-        pathTransition.setDuration(Duration.millis(1000));
-
-        //Setting the node for the transition
-        pathTransition.setNode(robot);
-
-        //Setting the path for the transition
-        pathTransition.setPath(path);
-
-        //Setting the orientation of the path
-        pathTransition.setOrientation(
-                PathTransition.OrientationType.ORTHOGONAL_TO_TANGENT);
-
-        //Setting the cycle count for the transition
-        pathTransition.setCycleCount(0);
-
-        //Setting auto reverse value to true
-        pathTransition.setAutoReverse(false);
-        pathTransition.setDuration(Duration.millis(10000));
-
-        pathTransition.setInterpolator(Interpolator.LINEAR);
-
-        //Playing the animation
-        //pathTransition.play();
-        return pathTransition;
+        return seqT;
     }
 
     public ImagePattern createGridPattern(GraphicsContext gc) {
@@ -350,10 +354,10 @@ public class Main extends Application {
                 case SOUTH:
                     indicator = new Rectangle(xPos, yPos+(gridSize-gridSize/10), gridSize, gridSize/10);
                     break;
-                case EAST:
+                case WEST:
                     indicator = new Rectangle(xPos, yPos, gridSize/10, gridSize);
                     break;
-                case WEST:
+                case EAST:
                     indicator = new Rectangle(xPos+(gridSize-gridSize/10), yPos, gridSize/10, gridSize);
                     break;
                 default: // ???
