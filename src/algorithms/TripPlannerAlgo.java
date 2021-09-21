@@ -426,8 +426,8 @@ public class TripPlannerAlgo {
         int abs1 = Math.abs(n1.getX() - n2.getX());
         int abs2 = Math.abs(n1.getY() - n2.getY());
         // prefer nodes in the same direction as the end direction
-        double directionWeight = (n1.getDim() == endDim) ? 1 : 1.5; // TODO: doing this makes the path hug obstacles more tightly. May want to remove
-        return (abs1 + abs2) * RobotConstants.MOVE_COST * directionWeight;
+        //double directionWeight = (n1.getDim() == endDim) ? 1 : 1; // TODO: doing this makes the path hug obstacles more tightly. May want to remove
+        return (abs1 + abs2) * RobotConstants.MOVE_COST; //* directionWeight;
     }
 
     /**
@@ -462,33 +462,55 @@ public class TripPlannerAlgo {
         int prevDir = curr.getDim();
         double newEndX, newEndY;
         int dirInDegrees;
+        boolean reversing;
         while (curr != null) {
+            reversing = false;
             path.add(curr);
             next = predMap.get(curr);
             dirInDegrees = prevDir*90;
             if (next == null) { // this is the starting line
                 lineStart[0] = curr.getX() * MapConstants.OBSTACLE_WIDTH + midpoint;
                 lineStart[1] = curr.getY() * MapConstants.OBSTACLE_WIDTH + midpoint;
-                pathSegments.add(new LineMove(lineStart[0], lineStart[1], lineEnd[0], lineEnd[1], dirInDegrees, true));
-            } else if (next.getDim() != prevDir) { // if direction changes, record the point at which that occurs
-                lineStart[0] = next.getX() * MapConstants.OBSTACLE_WIDTH + midpoint;
-                lineStart[1] = next.getY() * MapConstants.OBSTACLE_WIDTH + midpoint;
                 switch (prevDir) {
                     case 0: // east
-                        lineStart[0] += turnRadius;
+                        if (lineEnd[0] < lineStart[0]) reversing = true;
                         break;
                     case 1: // north
-                        lineStart[1] -= turnRadius;
+                        if (lineEnd[1] > lineStart[1]) reversing = true;
                         break;
                     case 2: // west
-                        lineStart[0] -= turnRadius;
+                        if (lineEnd[0] > lineStart[0]) reversing = true;
                         break;
                     case 3: // south
-                        lineStart[1] += turnRadius;
+                        if (lineEnd[1] < lineStart[1]) reversing = true;
                         break;
                     default: // wut
                 }
-                pathSegments.add(new LineMove(lineStart[0], lineStart[1], lineEnd[0], lineEnd[1], dirInDegrees, true));
+                pathSegments.add(new LineMove(lineStart[0], lineStart[1], lineEnd[0], lineEnd[1], dirInDegrees, true, reversing));
+            } else if (next.getDim() != prevDir) { // if direction changes, record the point at which that occurs
+                lineStart[0] = next.getX() * MapConstants.OBSTACLE_WIDTH + midpoint;
+                lineStart[1] = next.getY() * MapConstants.OBSTACLE_WIDTH + midpoint;
+                //                 // check if moving in opposite direction
+                switch (prevDir) {
+                    case 0: // east
+                        lineStart[0] += turnRadius;
+                        if (lineEnd[0] < lineStart[0]) reversing = true;
+                        break;
+                    case 1: // north
+                        lineStart[1] -= turnRadius;
+                        if (lineEnd[1] > lineStart[1]) reversing = true;
+                        break;
+                    case 2: // west
+                        lineStart[0] -= turnRadius;
+                        if (lineEnd[0] > lineStart[0]) reversing = true;
+                        break;
+                    case 3: // south
+                        lineStart[1] += turnRadius;
+                        if (lineEnd[1] < lineStart[1]) reversing = true;
+                        break;
+                    default: // wut
+                }
+                pathSegments.add(new LineMove(lineStart[0], lineStart[1], lineEnd[0], lineEnd[1], dirInDegrees, true, reversing));
                 prevDir = next.getDim();
                 lineEnd[0] = next.getX() * MapConstants.OBSTACLE_WIDTH + midpoint;
                 lineEnd[1] = next.getY() * MapConstants.OBSTACLE_WIDTH + midpoint;
@@ -514,8 +536,11 @@ public class TripPlannerAlgo {
         }
         Collections.reverse(path); // reverse the path and put it in the correct order
         if (print) printPath(path);
-        if (pathSegments.get(0).getLength() <= 2) pathSegments.get(0).reverse();
+        //if (pathSegments.get(0).getLength() <= 2) //pathSegments.get(0).reverse();
         Collections.reverse(pathSegments);
+        System.out.println(pathSegments.get(0).getDirInDegrees());
+
+        for (MoveType i : pathSegments) System.out.println(i.toString());
 
         return pathSegments;
     }

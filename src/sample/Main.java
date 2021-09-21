@@ -3,10 +3,7 @@ package sample;
 import algorithms.FastestPathAlgo;
 import algorithms.MoveType;
 import algorithms.TripPlannerAlgo;
-import javafx.animation.Animation;
-import javafx.animation.Interpolator;
-import javafx.animation.PathTransition;
-import javafx.animation.SequentialTransition;
+import javafx.animation.*;
 import javafx.application.Application;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -25,8 +22,8 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.layout.*;
+import javafx.scene.paint.*;
 import javafx.scene.paint.Color;
-import javafx.scene.paint.ImagePattern;
 import javafx.scene.shape.*;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
@@ -41,6 +38,7 @@ import robot.Robot;
 import robot.RobotConstants;
 
 import java.awt.*;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Locale;
@@ -52,6 +50,9 @@ public class Main extends Application {
     private final int arenaSize = dim*scale;
     private final int gridSize = arenaSize/(MapConstants.ARENA_WIDTH/MapConstants.OBSTACLE_WIDTH);
     private ArrayList<Obstacle> obsList= new ArrayList<>();
+
+    private Timeline timeline;
+    private double timeSeconds = 0;
 
     private static Robot bot;
     private static FastestPathAlgo fast;
@@ -82,9 +83,12 @@ public class Main extends Application {
         robot.setX(robotCoords.getX()*gridSize-robot.getWidth()/4);
         robot.setY(robotCoords.getY()*gridSize-robot.getHeight()/4);
         System.out.println(robot.getX());
-        robot.setFill(ViewConstants.ROBOT_COLOR);
+        Stop[] stops = new Stop[] { new Stop(0, Color.BLACK), new Stop(0.99, Color.RED)};
+        LinearGradient lg1 = new LinearGradient(0, 0, 1, 0, true, CycleMethod.NO_CYCLE, stops);
+        robot.setFill(lg1);
+        //robot.setFill(ViewConstants.ROBOT_COLOR);
         robot.setStrokeWidth(20);
-        robot.setRotate(90);
+        robot.setRotate(-90);
         //robot.setX()
         arenaPane.getChildren().addAll(robot);
         //arenaPane.getChildren().addAll(animateRobot());
@@ -99,6 +103,7 @@ public class Main extends Application {
 
         // shortest path label
         Label shortestPathLabel = new Label("Shortest path: ");
+        Label timerLabel = new Label("Time: ");
 
         // input fields
         Label xLabel = new Label("X Pos:");
@@ -137,11 +142,36 @@ public class Main extends Application {
         };
         obstacleButton.setOnAction(addObstacle);
 
+
         Button simulateButton = new Button("Run Simulation");
         EventHandler<ActionEvent> runSimulation = new EventHandler<ActionEvent>() {
             public void handle(ActionEvent e)
             {
-                runSimulation(shortestPathLabel, robot);
+                if (timeline != null) {
+                    timeline.stop();
+                }
+                timeSeconds = 0;
+
+                // update timerLabel
+                timerLabel.setText("Time: " + Double.toString(Math.round(timeSeconds*100.0)/100.0));
+                timeline = new Timeline();
+                timeline.setCycleCount(Timeline.INDEFINITE);
+                timeline.getKeyFrames().add(
+                        new KeyFrame(Duration.millis(1),
+                                new EventHandler<ActionEvent>() {
+                                    // KeyFrame event handler
+                                    public void handle(ActionEvent event) {
+                                        timeSeconds+= .001;
+                                        // update timerLabel
+                                        timerLabel.setText("Time: " + Double.toString(
+                                                Math.round(timeSeconds*100.0)/100.0));
+                                        if (timeSeconds >= 360) {
+                                            timeline.stop();
+                                        }
+                                    }
+                                }));
+                timeline.playFromStart();
+                runSimulation(shortestPathLabel, robot, timeline);
             }
         };
 
@@ -167,17 +197,17 @@ public class Main extends Application {
         buttonBar.setMinHeight(100);
 
         // place arena and control panel into vertical box
-        VBox vbox = new VBox(arenaPane, shortestPathLabel, buttonBar);
+        VBox vbox = new VBox(arenaPane, shortestPathLabel, timerLabel, buttonBar);
 
         // pack everything into the stage
         primaryStage.setTitle("Simulator");
-        primaryStage.setScene(new Scene(vbox, arenaSize, arenaSize+100));
+        primaryStage.setScene(new Scene(vbox, arenaSize, arenaSize+150));
         primaryStage.setResizable(false);
         primaryStage.show();
 
     }
 
-    public void runSimulation(Label label, Rectangle robot) {
+    public void runSimulation(Label label, Rectangle robot, Timeline timeline) {
         ArrayList<ArrayList<MoveType>> moveList= new ArrayList<>();
         ArrayList<PictureObstacle> pictureList = Arena.getObstacles();
         SequentialTransition seqT = new SequentialTransition();
@@ -205,6 +235,7 @@ public class Main extends Application {
         //    seqT.getChildren().add(getPathAnimation(robot, moves));
         //}
         seqT.play();
+        seqT.setOnFinished(e -> timeline.stop());
     }
 
     /**
@@ -241,24 +272,47 @@ public class Main extends Application {
         MoveType start = pathList.get(0).get(0);
         int startDir;
         double radius;
-        double nextX = start.getX1();
-        double nextY = start.getY1();
+        double nextX = start.getX1()*scale;
+        double nextY = start.getY1()*scale;
+        double duration, lineLength;
         int endDir;
 
         ArrayList<MoveType> paths;
         int len = pathList.size();
         for (int i = 0; i < len; i++) {
-            Path path = new Path();
             paths = pathList.get(i);
-            MoveTo moveTo = new MoveTo(nextX*scale, nextY*scale);
-            path.getElements().add(moveTo);
             startDir = paths.get(0).getDirInDegrees();
             for (MoveType move : paths) {
+                Path path = new Path();
+                PathTransition pathTransition = new PathTransition();
+                pathTransition.setNode(robot);
+                pathTransition.setOrientation(
+                        PathTransition.OrientationType.ORTHOGONAL_TO_TANGENT);
+                pathTransition.setCycleCount(0);
+                pathTransition.setAutoReverse(false);
+                duration = move.getLength()/RobotConstants.MOVE_SPEED;
+                pathTransition.setDuration(Duration.millis(duration*1000));
+                pathTransition.setInterpolator(Interpolator.LINEAR);
+
                 if (move.isLine()) { // moving straight
-                    LineTo line = new LineTo(move.getX2() * scale, move.getY2() * scale);
-                    path.getElements().add(line);
-                    startDir = move.getDirInDegrees();
+                    //startDir = move.getDirInDegrees();
+                    //seqT.getChildren().add(pathTransition);
+                    if (move.isReverse()) {
+                        pathTransition.setInterpolator(ReverseInterpolator.reverse(Interpolator.LINEAR));
+                        MoveTo moveTo = new MoveTo(move.getX2() * scale, move.getY2() * scale);
+                        path.getElements().add(moveTo);
+                        LineTo line = new LineTo(nextX, nextY);
+                        path.getElements().add(line);
+                    } else {
+                        MoveTo moveTo = new MoveTo(nextX, nextY);
+                        path.getElements().add(moveTo);
+                        LineTo line = new LineTo(move.getX2() * scale, move.getY2() * scale);
+                        path.getElements().add(line);
+                    }
+                    pathTransition.setPath(path);
                 } else { // its a turn
+                    MoveTo moveTo = new MoveTo(nextX, nextY);
+                    path.getElements().add(moveTo);
                     endDir = move.getDirInDegrees();
                     ArcTo turn = new ArcTo();
                     radius = move.getRadius() * scale;
@@ -268,43 +322,45 @@ public class Main extends Application {
                     turn.setY(move.getY2() * scale);
                     turn.setSweepFlag(true);
                     //if (startDir == 90 && endDir == 180) turn.setSweepFlag(true);
-                    if (startDir == 270) turn.setSweepFlag(false);
+                    if (startDir == 270 && endDir == 0) turn.setSweepFlag(false);
                     else if (startDir == 0 && endDir == 90) turn.setSweepFlag(false);
-                    else if (startDir == 180) turn.setSweepFlag(false);
+                    //else if (startDir == 180 && endDir == 0) turn.setSweepFlag(false);
+                    else if (startDir == 180 && endDir == 270) turn.setSweepFlag(false);
                     else if (startDir == 90 && endDir == 180) turn.setSweepFlag(false);
                     startDir = move.getDirInDegrees();
-                /*
-                if ((startDir == 0 || endDir == 0) && (startDir == 90 || endDir == 90)) {
-                    turn.setX(move.getX1()*scale+radius); turn.setY(move.getY1()*scale-radius);
-                } else if ((startDir == 90 || endDir == 90) && (startDir == 180 || endDir == 180)) {
-                    turn.setX(move.getX1()*scale-radius); turn.setY(move.getY1()*scale-radius);
-                } else if ((startDir == 180 || endDir == 180) && (startDir == 270 || endDir == 270)) {
-                    turn.setX(move.getX1()*scale-radius); turn.setY(move.getY1()*scale+radius);
-                } else if ((startDir == 270 || endDir == 270) && (startDir == 0 || endDir == 0)) {
-                    turn.setX(move.getX1()*scale+radius); turn.setY(move.getY1()*scale+radius);
-                }
-                 */
                     path.getElements().add(turn);
+                    pathTransition.setPath(path);
                 }
+                nextX = move.getX2() * scale;
+                nextY = move.getY2() * scale;
+                seqT.getChildren().add(pathTransition);
             }
             if (i < len-1) { // not the last path, so we perform a reverse
-                nextX = pathList.get(i+1).get(0).getX1();
-                nextY = pathList.get(i+1).get(0).getY1();
+                Path path = new Path();
+                PathTransition pathTransition = new PathTransition();
+                pathTransition.setNode(robot);
+                pathTransition.setPath(path);
+                pathTransition.setOrientation(
+                        PathTransition.OrientationType.ORTHOGONAL_TO_TANGENT);
+                pathTransition.setCycleCount(0);
+                pathTransition.setAutoReverse(false);
+                pathTransition.setInterpolator(ReverseInterpolator.reverse(Interpolator.LINEAR));
+
+                double oldX = nextX;
+                double oldY = nextY;
+                nextX = pathList.get(i+1).get(0).getX1()*scale;
+                nextY = pathList.get(i+1).get(0).getY1()*scale;
                 //System.out.println(nextX + ", " + nextY);
-                LineTo line = new LineTo(nextX*scale, nextY*scale);
+                MoveTo moveTo = new MoveTo(nextX, nextY);
+                path.getElements().add(moveTo);
+                LineTo line = new LineTo(oldX, oldY);
+                lineLength = Math.sqrt((nextY-oldY)*(nextY-oldY)+(nextX-oldX)*(nextX-oldX));
+                duration = RobotConstants.MOVE_SPEED*scale/lineLength;
+                pathTransition.setDuration(Duration.millis(duration*1000));
                 path.getElements().add(line);
+                pathTransition.setPath(path);
+                seqT.getChildren().add(pathTransition);
             }
-            PathTransition pathTransition = new PathTransition();
-            pathTransition.setDuration(Duration.millis(1000));
-            pathTransition.setNode(robot);
-            pathTransition.setPath(path);
-            pathTransition.setOrientation(
-                    PathTransition.OrientationType.ORTHOGONAL_TO_TANGENT);
-            pathTransition.setCycleCount(0);
-            pathTransition.setAutoReverse(false);
-            pathTransition.setDuration(Duration.millis(10000));
-            pathTransition.setInterpolator(Interpolator.LINEAR);
-            seqT.getChildren().add(pathTransition);
         }
         return seqT;
     }
@@ -364,7 +420,7 @@ public class Main extends Application {
                     indicator = null;
             }
             indicator.setFill(ViewConstants.IMAGE_INDICATOR_COLOR);
-            idLabel = new Label("-");
+            idLabel = new Label(String.valueOf(obsList.size() + 1));
             idLabel.setAlignment(Pos.CENTER);
             idLabel.setFont(new Font(5*scale));
             idLabel.setTextFill(ViewConstants.OBSTACLE_TEXT_COLOR);

@@ -10,6 +10,7 @@ public class RobotConstants {
     public static final int TURN_COST_90 = 20;
     public static final int MAX_COST = Integer.MAX_VALUE;
     public static final double TURN_RADIUS = 22;
+    public static final double MOVE_SPEED = 21; // in cm per second
 
     public enum ROBOT_DIRECTION{
         NORTH, EAST, SOUTH, WEST;

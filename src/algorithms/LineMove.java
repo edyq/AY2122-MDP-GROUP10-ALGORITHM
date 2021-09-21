@@ -1,8 +1,8 @@
 package algorithms;
 
 public class LineMove extends MoveType {
-    public LineMove(double x1, double y1, double x2, double y2, int dirInDegrees, boolean isLine) {
-        super(x1, y1, x2, y2, dirInDegrees, isLine);
+    public LineMove(double x1, double y1, double x2, double y2, int dirInDegrees, boolean isLine, boolean isReversing) {
+        super(x1, y1, x2, y2, dirInDegrees, isLine, isReversing);
     }
 
     @Override
