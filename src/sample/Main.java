@@ -48,9 +48,9 @@ import java.util.function.UnaryOperator;
 public class Main extends Application {
     private final int dim = MapConstants.ARENA_WIDTH;
     private final int scale = ViewConstants.SCALE;
-    private final int arenaSize = dim*scale;
-    private final int gridSize = arenaSize/(MapConstants.ARENA_WIDTH/MapConstants.OBSTACLE_WIDTH);
-    private ArrayList<Obstacle> obsList= new ArrayList<>();
+    private final int arenaSize = dim * scale;
+    private final int gridSize = arenaSize / (MapConstants.ARENA_WIDTH / MapConstants.OBSTACLE_WIDTH);
+    private ArrayList<Obstacle> obsList = new ArrayList<>();
 
     private static Robot bot;
     private static FastestPathAlgo fast;
@@ -59,7 +59,7 @@ public class Main extends Application {
     private static Arena arena = null;
 
     @Override
-    public void start(Stage primaryStage) throws Exception{
+    public void start(Stage primaryStage) throws Exception {
         //Parent root = FXMLLoader.load(getClass().getResource("sample.fxml"));
         // arena section
         // graphics context
@@ -76,10 +76,10 @@ public class Main extends Application {
 
         // draw robot
         //int robotXPos =
-        Rectangle robot = new Rectangle(0,0,20*scale, 23*scale);
-        Point robotCoords= RobotConstants.ROBOT_INITIAL_CENTER_COORDINATES;
-        robot.setX(robotCoords.getX()*gridSize-robot.getWidth()/4);
-        robot.setY(robotCoords.getY()*gridSize-robot.getHeight()/4);
+        Rectangle robot = new Rectangle(0, 0, 20 * scale, 23 * scale);
+        Point robotCoords = RobotConstants.ROBOT_INITIAL_CENTER_COORDINATES;
+        robot.setX(robotCoords.getX() * gridSize - robot.getWidth() / 4);
+        robot.setY(robotCoords.getY() * gridSize - robot.getHeight() / 4);
         System.out.println(robot.getX());
         robot.setFill(ViewConstants.ROBOT_COLOR);
         robot.setStrokeWidth(20);
@@ -89,11 +89,12 @@ public class Main extends Application {
         //animateRobot(robot);
 
         /*
-        addObstacle(arenaPane,0,10,IMAGE_DIRECTION.SOUTH);
-        addObstacle(arenaPane,3,3,IMAGE_DIRECTION.EAST);
+        addObstacle(arenaPane,5,10,IMAGE_DIRECTION.SOUTH);
+        addObstacle(arenaPane,15,15,IMAGE_DIRECTION.WEST);
         addObstacle(arenaPane,4,4,IMAGE_DIRECTION.NORTH);
-        addObstacle(arenaPane,5,5,IMAGE_DIRECTION.WEST);
-         */
+        addObstacle(arenaPane,15,5,IMAGE_DIRECTION.WEST);
+        addObstacle(arenaPane,10,15,IMAGE_DIRECTION.NORTH);
+        */
 
         // shortest path label
         Label shortestPathLabel = new Label("Shortest path: ");
@@ -119,15 +120,14 @@ public class Main extends Application {
 
 
         ObservableList<String> options = FXCollections.observableArrayList(
-                "North","South","East","West");
+                "North", "South", "East", "West");
         ComboBox directionBox = new ComboBox(options);
         directionBox.getSelectionModel().selectFirst();
 
         // buttons
         Button obstacleButton = new Button("Add Obstacle");
         EventHandler<ActionEvent> addObstacle = new EventHandler<ActionEvent>() {
-            public void handle(ActionEvent e)
-            {
+            public void handle(ActionEvent e) {
                 String dir = (String) directionBox.getValue();
                 System.out.println(Integer.parseInt(xField.getText()));
                 addObstacle(arenaPane, Integer.parseInt(xField.getText()), Integer.parseInt(yField.getText()), IMAGE_DIRECTION.valueOf(dir.toUpperCase()));
@@ -137,8 +137,7 @@ public class Main extends Application {
 
         Button simulateButton = new Button("Run Simulation");
         EventHandler<ActionEvent> runSimulation = new EventHandler<ActionEvent>() {
-            public void handle(ActionEvent e)
-            {
+            public void handle(ActionEvent e) {
                 runSimulation(shortestPathLabel, robot);
             }
         };
@@ -148,19 +147,19 @@ public class Main extends Application {
 
         GridPane buttonBar = new GridPane();
         buttonBar.setAlignment(Pos.CENTER);
-        buttonBar.add(xLabel, 0,0);
-        buttonBar.add(yLabel,1,0);
-        buttonBar.add(dirLabel,2,0);
-        buttonBar.add(xField,0,1);
-        buttonBar.add(yField,1,1);
-        buttonBar.add(directionBox, 2,1);
-        buttonBar.add(obstacleButton, 0,2,3,1);
-        buttonBar.add(simulateButton,3,2,3,1);
+        buttonBar.add(xLabel, 0, 0);
+        buttonBar.add(yLabel, 1, 0);
+        buttonBar.add(dirLabel, 2, 0);
+        buttonBar.add(xField, 0, 1);
+        buttonBar.add(yField, 1, 1);
+        buttonBar.add(directionBox, 2, 1);
+        buttonBar.add(obstacleButton, 0, 2, 3, 1);
+        buttonBar.add(simulateButton, 3, 2, 3, 1);
         obstacleButton.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
         simulateButton.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
         ColumnConstraints cc = new ColumnConstraints();
         cc.setPercentWidth(15);
-        buttonBar.getColumnConstraints().addAll(cc,cc,cc,cc);
+        buttonBar.getColumnConstraints().addAll(cc, cc, cc, cc);
         buttonBar.setMinWidth(arenaSize);
         buttonBar.setMinHeight(100);
 
@@ -169,14 +168,14 @@ public class Main extends Application {
 
         // pack everything into the stage
         primaryStage.setTitle("Simulator");
-        primaryStage.setScene(new Scene(vbox, arenaSize, arenaSize+100));
+        primaryStage.setScene(new Scene(vbox, arenaSize, arenaSize + 100));
         primaryStage.setResizable(false);
         primaryStage.show();
 
     }
 
     public void runSimulation(Label label, Rectangle robot) {
-        ArrayList<ArrayList<MoveType>> moveList= new ArrayList<>();
+        ArrayList<ArrayList<MoveType>> moveList = new ArrayList<>();
         ArrayList<PictureObstacle> pictureList = Arena.getObstacles();
         SequentialTransition seqT = new SequentialTransition();
 
@@ -207,6 +206,7 @@ public class Main extends Application {
 
     /**
      * Redraw the arena
+     *
      * @return
      */
     private ImagePattern drawGridLines() {
@@ -249,24 +249,28 @@ public class Main extends Application {
 
         for (MoveType move : pathList) {
             if (move.isLine()) { // moving straight
-                LineTo line = new LineTo(move.getX2()*gridSize, move.getY2()*gridSize);
+                LineTo line = new LineTo(move.getX2() * gridSize, move.getY2() * gridSize);
                 path.getElements().add(line);
                 //System.out.println(move.getX2()*gridSize);
                 //System.out.println(startX);
             } else { // its a turn
                 ArcTo turn = new ArcTo();
-                radius = move.getRadius()*scale;
+                radius = move.getRadius() * scale;
                 turn.setRadiusX(radius);
                 turn.setRadiusY(radius);
                 endDir = move.getDirInDegrees();
                 if ((startDir == 0 || endDir == 0) && (startDir == 90 || endDir == 90)) {
-                    turn.setX(move.getX1()*gridSize+radius); turn.setY(move.getY1()*gridSize-radius);
+                    turn.setX(move.getX1() * gridSize + radius);
+                    turn.setY(move.getY1() * gridSize - radius);
                 } else if ((startDir == 90 || endDir == 90) && (startDir == 180 || endDir == 180)) {
-                    turn.setX(move.getX1()*gridSize-radius); turn.setY(move.getY1()*gridSize-radius);
+                    turn.setX(move.getX1() * gridSize - radius);
+                    turn.setY(move.getY1() * gridSize - radius);
                 } else if ((startDir == 180 || endDir == 180) && (startDir == 270 || endDir == 270)) {
-                    turn.setX(move.getX1()*gridSize-radius); turn.setY(move.getY1()*gridSize+radius);
+                    turn.setX(move.getX1() * gridSize - radius);
+                    turn.setY(move.getY1() * gridSize + radius);
                 } else if ((startDir == 270 || endDir == 270) && (startDir == 0 || endDir == 0)) {
-                    turn.setX(move.getX1()*gridSize+radius); turn.setY(move.getY1()*gridSize+radius);
+                    turn.setX(move.getX1() * gridSize + radius);
+                    turn.setY(move.getY1() * gridSize + radius);
                 }
                 path.getElements().add(turn);
             }
@@ -324,7 +328,7 @@ public class Main extends Application {
     }
 
     private void addObstacle(Pane arenaPane, int x, int y, IMAGE_DIRECTION dir) {
-        boolean success = arena.addPictureObstacle(x,y,dir);
+        boolean success = arena.addPictureObstacle(x, y, dir);
         if (success) {
             Obstacle obs = new Obstacle(x, y, dir);
             obs.addToPane(arenaPane);
@@ -336,36 +340,37 @@ public class Main extends Application {
         Rectangle obstacle;
         Rectangle indicator;
         Label idLabel;
+
         //StackPane stack;
         public Obstacle(int x, int y, IMAGE_DIRECTION dir) {
-            int xPos = x*gridSize;
-            int yPos = y*gridSize;
+            int xPos = x * gridSize;
+            int yPos = y * gridSize;
             //stack = new StackPane();
             obstacle = new Rectangle(xPos, yPos, gridSize, gridSize);
             obstacle.setFill(ViewConstants.OBSTACLE_COLOR);
             switch (dir) {
                 case NORTH:
-                    indicator = new Rectangle(xPos, yPos, gridSize, gridSize/10);
+                    indicator = new Rectangle(xPos, yPos, gridSize, gridSize / 10);
                     break;
                 case SOUTH:
-                    indicator = new Rectangle(xPos, yPos+(gridSize-gridSize/10), gridSize, gridSize/10);
+                    indicator = new Rectangle(xPos, yPos + (gridSize - gridSize / 10), gridSize, gridSize / 10);
                     break;
                 case EAST:
-                    indicator = new Rectangle(xPos, yPos, gridSize/10, gridSize);
+                    indicator = new Rectangle(xPos + (gridSize - gridSize / 10), yPos, gridSize / 10, gridSize);
                     break;
                 case WEST:
-                    indicator = new Rectangle(xPos+(gridSize-gridSize/10), yPos, gridSize/10, gridSize);
+                    indicator = new Rectangle(xPos, yPos, gridSize / 10, gridSize);
                     break;
                 default: // ???
                     indicator = null;
             }
             indicator.setFill(ViewConstants.IMAGE_INDICATOR_COLOR);
-            idLabel = new Label("-");
+            idLabel = new Label(String.valueOf(obsList.size() + 1));
             idLabel.setAlignment(Pos.CENTER);
-            idLabel.setFont(new Font(5*scale));
+            idLabel.setFont(new Font(5 * scale));
             idLabel.setTextFill(ViewConstants.OBSTACLE_TEXT_COLOR);
-            idLabel.setTranslateX(xPos+(gridSize/4));
-            idLabel.setTranslateY(yPos+(gridSize/4));
+            idLabel.setTranslateX(xPos + (gridSize / 4));
+            idLabel.setTranslateY(yPos + (gridSize / 4));
             //stack.getChildren().addAll(obstacle, idLabel);
             //stack.set
         }
