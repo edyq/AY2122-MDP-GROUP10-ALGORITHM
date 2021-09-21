@@ -297,6 +297,7 @@ public class TripPlannerAlgo {
         }
         if (!goalFound) {
             this.totalCost += 9999;
+            System.out.println("goal not found");
             return null;
         }
         if (doBacktrack) {
@@ -319,7 +320,7 @@ public class TripPlannerAlgo {
         int x = obs.getX();
         int y = obs.getY();
         System.out.println("Obstacle at: " + x + ", " + y);
-        int minReverse = AlgoConstants.DISTANCE_FROM_GOAL+calculateTurnSize(RobotConstants.TURN_RADIUS)-1;
+        int minReverse = AlgoConstants.DISTANCE_FROM_GOAL+calculateTurnSize(RobotConstants.TURN_RADIUS);
         int[] goalArray;
         switch (obs.getImadeDirectionAngle()) { // TODO: replace with an algorithm to determine the best back up distance. (Maybe reverse to the closest legal position to the next goal?)
             case 0:
