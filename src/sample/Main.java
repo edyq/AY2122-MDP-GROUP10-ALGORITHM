@@ -339,6 +339,9 @@ public class Main extends Application {
                 seqT.getChildren().add(pathTransition);
             }
             if (i < len-1) { // not the last path, so we perform a reverse
+                PauseTransition pauseTransition = new PauseTransition(Duration.millis(2000));
+                seqT.getChildren().add(pauseTransition);
+
                 Path path = new Path();
                 PathTransition pathTransition = new PathTransition();
                 pathTransition.setNode(robot);
