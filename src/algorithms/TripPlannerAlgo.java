@@ -196,9 +196,10 @@ public class TripPlannerAlgo {
         int maxTurnCount = calculateTurnSize(turnRadius);            // get the number of grids that the car needs to move straight after changing directions (for a legal turn)
         // this is the counter for the turnArray. Only when turnArray[y][x] = turnMaxCount is a turn allowed to be made.
         int x, y, dim;
-
+        int minTurnCount = (int)Math.floor(maxTurnCount / 2.0);
+        //System.out.println(minTurnCount);
         //Robot r = arena.getRobot();
-        turningArray[startY][startX][angleToDimension(startAngle)] = maxTurnCount - 2; // make robot starting position half the required grids to turn.
+        turningArray[startY][startX][angleToDimension(startAngle)] = minTurnCount; // make robot starting position half the required grids to turn. // TODO: new
         Node nextNode;
         int[] forwardLocation, leftLocation, rightLocation;
         int nextX, nextY, nextDim, currentTurnCount;
@@ -216,7 +217,7 @@ public class TripPlannerAlgo {
 
             if (currentNode == goalNode) {      // we have found the goal
                 // TODO: consider multiple goal states? (i.e. the nodes to the left and right of the goal node as well)
-                if (currentTurnCount < maxTurnCount - 2) { // we are still turning when we reached the goal state - thus, we cannot end the search.
+                if (currentTurnCount < minTurnCount) { // we are still turning when we reached the goal state - thus, we cannot end the search.
                     continue; // go to the next iteration, and hope we rediscover the goal node again when we are not turning this time
                 }
                 goalFound = true; // otherwise, we are good to go (search over)!
@@ -319,8 +320,8 @@ public class TripPlannerAlgo {
     public int[] getReverseCoordinates(PictureObstacle obs) {
         int x = obs.getX();
         int y = obs.getY();
-        System.out.println("Obstacle at: " + x + ", " + y);
-        int minReverse = AlgoConstants.DISTANCE_FROM_GOAL+calculateTurnSize(RobotConstants.TURN_RADIUS);
+        //System.out.println("Obstacle at: " + x + ", " + y);
+        int minReverse = AlgoConstants.DISTANCE_FROM_GOAL+calculateTurnSize(RobotConstants.TURN_RADIUS); // TODO: -1?
         int[] goalArray;
         switch (obs.getImadeDirectionAngle()) { // TODO: replace with an algorithm to determine the best back up distance. (Maybe reverse to the closest legal position to the next goal?)
             case 0:
