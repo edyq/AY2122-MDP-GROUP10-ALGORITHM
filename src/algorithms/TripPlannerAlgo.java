@@ -18,6 +18,7 @@ public class TripPlannerAlgo {
     //private int[][][] turningArray; // array to keep track of whether turns are possible at this position
     private final Map<Node, Node> predMap;
     private int[] endPosition; // use this to access the end position of our car.
+    private ArrayList<Node> nodePath;
 
     private PriorityQueue<Node> visitQueue; // min heap priority queue for nodes in the frontier
     private Node currentNode;
@@ -635,89 +636,10 @@ public class TripPlannerAlgo {
                 pathSegments.add(new ArcMove(lineEnd[0], lineEnd[1], lineStart[0], lineStart[1], dirInDegrees, radiusX, radiusY, false , turnLeft));
             }
             curr = prev;
-            /*
-            if (next == null) { // this is the starting line
-                lineStart[0] = curr.getX() * MapConstants.OBSTACLE_WIDTH + midpoint;
-                lineStart[1] = curr.getY() * MapConstants.OBSTACLE_WIDTH + midpoint;
-                switch (prevDir) {
-                    case 0: // east
-                        if (lineEnd[0] < lineStart[0]) reversing = true;
-                        break;
-                    case 1: // north
-                        if (lineEnd[1] > lineStart[1]) reversing = true;
-                        break;
-                    case 2: // west
-                        if (lineEnd[0] > lineStart[0]) reversing = true;
-                        break;
-                    case 3: // south
-                        if (lineEnd[1] < lineStart[1]) reversing = true;
-                        break;
-                    default: // wut
-                }
-                pathSegments.add(new LineMove(lineStart[0], lineStart[1], lineEnd[0], lineEnd[1], prevDirInDegrees, true, reversing));
-            } else if (next.getDim() != prevDir) { // if direction changes, record the point at which that occurs
-                lineStart[0] = curr.getX() * MapConstants.OBSTACLE_WIDTH + midpoint; //next.getX() * MapConstants.OBSTACLE_WIDTH + midpoint;
-                lineStart[1] = curr.getY() * MapConstants.OBSTACLE_WIDTH + midpoint; //next.getY() * MapConstants.OBSTACLE_WIDTH + midpoint;
-
-                dirInDegrees = next.getDim()*90;
-                if ((dirInDegrees + 90)%360 == prevDirInDegrees) {
-                    turnLeft = true;
-                    radiusX = RobotConstants.LEFT_TURN_RADIUS_X;
-                    radiusY = RobotConstants.LEFT_TURN_RADIUS_Y;
-                } else {
-                    turnLeft = false;
-                    radiusX = RobotConstants.RIGHT_TURN_RADIUS_X;
-                    radiusY = RobotConstants.RIGHT_TURN_RADIUS_Y;
-                }
-                //                 // check if moving in opposite direction
-                switch (prevDir) {
-                    case 0: // east
-                        lineStart[0] -= diff-radiusX;
-                        if (lineEnd[0] < lineStart[0]) reversing = true;
-                        break;
-                    case 1: // north
-                        lineStart[1] += diff-radiusX;
-                        if (lineEnd[1] > lineStart[1]) reversing = true;
-                        break;
-                    case 2: // west
-                        lineStart[0] += diff-radiusX;
-                        if (lineEnd[0] > lineStart[0]) reversing = true;
-                        break;
-                    case 3: // south
-                        lineStart[1] -= diff-radiusX;
-                        if (lineEnd[1] < lineStart[1]) reversing = true;
-                        break;
-                    default: // wut
-                }
-                pathSegments.add(new LineMove(lineStart[0], lineStart[1], lineEnd[0], lineEnd[1], dirInDegrees, true, reversing));
-                prevDir = next.getDim();
-                lineEnd[0] = next.getX() * MapConstants.OBSTACLE_WIDTH + midpoint;
-                lineEnd[1] = next.getY() * MapConstants.OBSTACLE_WIDTH + midpoint;
-                switch (prevDir) {
-                    case 0: // east
-                        lineEnd[0] -= diff-radiusY;
-                        break;
-                    case 1: // north
-                        lineEnd[1] += diff-radiusY;
-                        break;
-                    case 2: // west
-                        lineEnd[0] += diff-radiusY;
-                        break;
-                    case 3: // south
-                        lineEnd[1] -= diff-radiusY;
-                        break;
-                    default: // wut
-                }
-                // add the turn to the list
-                // calculate is left or right turn
-                pathSegments.add(new ArcMove(lineEnd[0], lineEnd[1], lineStart[0], lineStart[1], dirInDegrees, radiusX, radiusY, false , turnLeft));
-            }
-             */
-            //curr = prev;
         }
         Collections.reverse(path); // reverse the path and put it in the correct order
         if (print) printPath(path);
-        //if (pathSegments.get(0).getLength() <= 2) //pathSegments.get(0).reverse();
+        nodePath = path; // save the path for sending to android team
         Collections.reverse(pathSegments);
         System.out.println(pathSegments.get(0).getDirInDegrees());
 
@@ -728,6 +650,10 @@ public class TripPlannerAlgo {
         for (MoveType i : pathSegments) System.out.println(i.toString());
 
         return pathSegments;
+    }
+
+    public ArrayList<Node> getNodePath() {
+        return nodePath;
     }
 
     private boolean isValidLocation(int x, int y, int dim) {

@@ -6,6 +6,7 @@ import algorithms.MoveType;
 import algorithms.TripPlannerAlgo;
 import map.Arena;
 import map.MapConstants;
+import map.Node;
 import map.PictureObstacle;
 import robot.Robot;
 import robot.RobotConstants;
@@ -21,20 +22,18 @@ public class PathToCommand {
     static FastestPathAlgo fast = new FastestPathAlgo(arena);
     static TripPlannerAlgo algo = new TripPlannerAlgo(arena);
 
+
     public static void main(String[] args) {
         arena.addPictureObstacle(18, 5, MapConstants.IMAGE_DIRECTION.NORTH);
-        //arena.addPictureObstacle(10, 15, MapConstants.IMAGE_DIRECTION.WEST);
-        //arena.addPictureObstacle(10, 13, MapConstants.IMAGE_DIRECTION.WEST);
         arena.addPictureObstacle(15, 10, MapConstants.IMAGE_DIRECTION.SOUTH);
-        //arena.addPictureObstacle(2, 11, MapConstants.IMAGE_DIRECTION.SOUTH);
 
         int[] path = fast.planFastestPath();
         //TARGET,obstalceNum,TARGETid
-        //comm.sendMsg(":AND:");
 
         comm.connectToRPi();
         //comm.sendMsg(":STM:0008");
         doThePath(path);
+        //sendPathToAndroid();
 
         comm.endConnection();
 
@@ -56,8 +55,9 @@ public class PathToCommand {
             System.out.println("---------------Path " + count + "---------------");
             System.out.println(next.getX() + ", " + next.getY());
             arrayList = algo.planPath(startX, startY, startAngle, next.getX(), next.getY(), next.getImadeDirectionAngle(), true, true);
+            sendPathToAndroid();
             sendMovesToRobot(arrayList);
-            int[] coords = algo.getEndPosition(); //algo.getReverseCoordinates(next);
+            int[] coords = algo.getEndPosition();
             startX = coords[0];
             startY = coords[1];
             startAngle = coords[2];
@@ -68,7 +68,7 @@ public class PathToCommand {
     private static void sendMovesToRobot(ArrayList<MoveType> moveList) {
         String formatted;
         String msg;
-        INSTRUCTION_TYPE instructionType = null;
+        INSTRUCTION_TYPE instructionType;
 
         sendToRobot(":STM:0008");
 
@@ -102,7 +102,6 @@ public class PathToCommand {
         String receiveMsg = null;
         while (receiveMsg == null || !receiveMsg.equals("A")) {
             receiveMsg = comm.recieveMsg();
-            //System.out.println("inside loop");
         }
         System.out.println("Message: " + receiveMsg + "\n");
     }
@@ -112,8 +111,47 @@ public class PathToCommand {
         String receiveMsg = null;
         while (receiveMsg == null || receiveMsg.isEmpty()) {
             receiveMsg = comm.recieveMsg();
-            //System.out.println("inside loop");
         }
         System.out.println("Message: " + receiveMsg + "\n");
+    }
+
+    private static void sendPathToAndroid() {
+        ArrayList<Node> path = algo.getNodePath();
+        String pathString = ":AND:PATH";
+        for (Node n : path) {
+            pathString += "|" + n.getX() + "," + n.getY() + "," + n.getDim()*90;
+        }
+        System.out.println(pathString);
+    }
+
+    private static void listenForObstacles() {
+        String receiveMsg = null;
+        while (receiveMsg == null || !receiveMsg.substring(0,4).equals("POS")) {
+            receiveMsg = comm.recieveMsg();
+        }
+
+        String[] obsArray = receiveMsg.split("|");
+        String[] pictureDetails;
+        int len = obsArray.length;
+        MapConstants.IMAGE_DIRECTION direction;
+        for (int i = 1; i<len; i++) {
+            pictureDetails = obsArray[i].split(",");
+            switch (pictureDetails[3]) {
+                case "N":
+                    direction = MapConstants.IMAGE_DIRECTION.NORTH;
+                case "S":
+                    direction = MapConstants.IMAGE_DIRECTION.SOUTH;
+                case "E":
+                    direction = MapConstants.IMAGE_DIRECTION.EAST;
+                case "W":
+                    direction = MapConstants.IMAGE_DIRECTION.WEST;
+                default:
+                    direction = null;
+
+
+            }
+            arena.addPictureObstacle(Integer.parseInt(pictureDetails[0]), Integer.parseInt(pictureDetails[1]), direction);
+        }
+
     }
 }
