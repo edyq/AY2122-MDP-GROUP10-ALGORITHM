@@ -1,5 +1,6 @@
 package sample;
 
+import algorithms.ArcMove;
 import algorithms.FastestPathAlgo;
 import algorithms.MoveType;
 import algorithms.TripPlannerAlgo;
@@ -224,13 +225,12 @@ public class Main extends Application {
         startCoords[0] = bot.getX();
         startCoords[1] = bot.getY();
         startCoords[2] = bot.getRobotDirectionAngle();
-        double turnRadius = RobotConstants.TURN_RADIUS;
         PictureObstacle n;
         for (int i : fastestPath) {
             n = pictureList.get(i);
             text += "<" + n.getX() + ", " + n.getY() + ">, ";
-            moveList.add(algo.planPath(startCoords[0], startCoords[1], startCoords[2], n.getX(), n.getY(), n.getImadeDirectionAngle(), turnRadius, true, true));
-            startCoords = algo.getReverseCoordinates(n);
+            moveList.add(algo.planPath(startCoords[0], startCoords[1], startCoords[2], n.getX(), n.getY(), n.getImadeDirectionAngle(), true, true));
+            startCoords = algo.getEndPosition();//algo.getReverseCoordinates(n);
         }
 
         label.setText(text);
@@ -275,7 +275,7 @@ public class Main extends Application {
         //Moving to the starting point
         MoveType start = pathList.get(0).get(0);
         int startDir;
-        double radius;
+        double radiusY, radiusX;
         double nextX = start.getX1()*scale;
         double nextY = start.getY1()*scale;
         double duration, lineLength;
@@ -320,18 +320,21 @@ public class Main extends Application {
                     path.getElements().add(moveTo);
                     endDir = move.getDirInDegrees();
                     ArcTo turn = new ArcTo();
-                    radius = move.getRadius() * scale;
-                    turn.setRadiusX(radius);
-                    turn.setRadiusY(radius);
+                    ArcMove arc = (ArcMove) move;
+                    radiusY = arc.getRadiusY() * scale;
+                    radiusX = arc.getRadiusX() * scale;
+                    turn.setRadiusX(radiusY);
+                    turn.setRadiusY(radiusX);
                     turn.setX(move.getX2() * scale);
                     turn.setY(move.getY2() * scale);
                     turn.setSweepFlag(true);
                     //if (startDir == 90 && endDir == 180) turn.setSweepFlag(true);
-                    if (startDir == 270 && endDir == 0) turn.setSweepFlag(false);
-                    else if (startDir == 0 && endDir == 90) turn.setSweepFlag(false);
+                    //if (startDir == 270 && endDir == 0) turn.setSweepFlag(false);
+                    //else if (startDir == 0 && endDir == 90) turn.setSweepFlag(false);
                     //else if (startDir == 180 && endDir == 0) turn.setSweepFlag(false);
-                    else if (startDir == 180 && endDir == 270) turn.setSweepFlag(false);
-                    else if (startDir == 90 && endDir == 180) turn.setSweepFlag(false);
+                    //else if (startDir == 180 && endDir == 270) turn.setSweepFlag(false);
+                    //else if (startDir == 90 && endDir == 180) turn.setSweepFlag(false);
+                    if (arc.isTurnLeft()) turn.setSweepFlag(false);
                     startDir = move.getDirInDegrees();
                     path.getElements().add(turn);
                     pathTransition.setPath(path);
@@ -343,7 +346,7 @@ public class Main extends Application {
             if (i < len-1) { // not the last path, so we perform a reverse
                 PauseTransition pauseTransition = new PauseTransition(Duration.millis(2000));
                 seqT.getChildren().add(pauseTransition);
-
+                /*
                 Path path = new Path();
                 PathTransition pathTransition = new PathTransition();
                 pathTransition.setNode(robot);
@@ -353,21 +356,22 @@ public class Main extends Application {
                 pathTransition.setCycleCount(0);
                 pathTransition.setAutoReverse(false);
                 pathTransition.setInterpolator(ReverseInterpolator.reverse(Interpolator.LINEAR));
+                 */
 
-                double oldX = nextX;
-                double oldY = nextY;
-                nextX = pathList.get(i+1).get(0).getX1()*scale;
-                nextY = pathList.get(i+1).get(0).getY1()*scale;
+                //double oldX = nextX;
+                //double oldY = nextY;
+                //nextX = pathList.get(i+1).get(0).getX1()*scale;
+                //nextY = pathList.get(i+1).get(0).getY1()*scale;
                 //System.out.println(nextX + ", " + nextY);
-                MoveTo moveTo = new MoveTo(nextX, nextY);
-                path.getElements().add(moveTo);
-                LineTo line = new LineTo(oldX, oldY);
-                lineLength = Math.sqrt((nextY-oldY)*(nextY-oldY)+(nextX-oldX)*(nextX-oldX));
-                duration = RobotConstants.MOVE_SPEED*scale/lineLength;
-                pathTransition.setDuration(Duration.millis(duration*1000));
-                path.getElements().add(line);
-                pathTransition.setPath(path);
-                seqT.getChildren().add(pathTransition);
+               // MoveTo moveTo = new MoveTo(nextX, nextY);
+                //path.getElements().add(moveTo);
+                //LineTo line = new LineTo(oldX, oldY);
+               // lineLength = Math.sqrt((nextY-oldY)*(nextY-oldY)+(nextX-oldX)*(nextX-oldX));
+               // duration = RobotConstants.MOVE_SPEED*scale/lineLength;
+                //pathTransition.setDuration(Duration.millis(duration*1000));
+                //path.getElements().add(line);
+                //pathTransition.setPath(path);
+               // seqT.getChildren().add(pathTransition);
             }
         }
         return seqT;

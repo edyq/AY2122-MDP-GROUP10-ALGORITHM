@@ -19,9 +19,4 @@ public class LineMove extends MoveType {
     public String toString() {
         return "Line: " + super.toString();
     }
-
-    @Override
-    public double getRadius() {
-        return 0;
-    }
 }

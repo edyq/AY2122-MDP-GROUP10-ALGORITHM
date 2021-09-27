@@ -55,9 +55,9 @@ public class PathToCommand {
             next = map.get(i);
             System.out.println("---------------Path " + count + "---------------");
             System.out.println(next.getX() + ", " + next.getY());
-            arrayList = algo.planPath(startX, startY, startAngle, next.getX(), next.getY(), next.getImadeDirectionAngle(), RobotConstants.TURN_RADIUS, true, true);
+            arrayList = algo.planPath(startX, startY, startAngle, next.getX(), next.getY(), next.getImadeDirectionAngle(), true, true);
             sendMovesToRobot(arrayList);
-            int[] coords = algo.getReverseCoordinates(next);
+            int[] coords = algo.getEndPosition(); //algo.getReverseCoordinates(next);
             startX = coords[0];
             startY = coords[1];
             startAngle = coords[2];
@@ -115,9 +115,5 @@ public class PathToCommand {
             //System.out.println("inside loop");
         }
         System.out.println("Message: " + receiveMsg + "\n");
-    }
-
-    private static void moveForwards(int dist) {
-
     }
 }

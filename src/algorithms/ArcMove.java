@@ -1,17 +1,23 @@
 package algorithms;
 
 public class ArcMove extends MoveType{
-    private double radius;
+    private double radiusX;
+    private double radiusY;
     private boolean turnLeft;
 
-    public ArcMove(double x1, double y1, double x2, double y2, int dirInDegrees, double radius, boolean isLine, boolean turnLeft) {
+    public ArcMove(double x1, double y1, double x2, double y2, int dirInDegrees, double radiusX, double radiusY, boolean isLine, boolean turnLeft) {
         super(x1, y1, x2, y2, dirInDegrees, isLine, false);
-        this.radius = radius;
+        this.radiusX = radiusX;
+        this.radiusY = radiusY;
         this.turnLeft = turnLeft;
     }
 
-    public double getRadius() {
-        return radius;
+    public double getRadiusX() {
+        return radiusX;
+    }
+
+    public double getRadiusY() {
+        return radiusY;
     }
 
     public boolean isTurnLeft() {
@@ -20,11 +26,14 @@ public class ArcMove extends MoveType{
 
     @Override
     public double getLength() {
-        return 2*Math.PI*radius*0.25;
+        return 2*Math.PI*radiusX*0.25;
     }
 
     @Override
     public String toString() {
-        return "Arc: Turning left: " + turnLeft + ", " + super.toString();
+        if (turnLeft)
+            return "Arc: Turning left, " + super.toString();
+        else
+            return "Arc: Turning right, " + super.toString();
     }
 }
