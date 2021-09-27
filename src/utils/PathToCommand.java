@@ -22,17 +22,21 @@ public class PathToCommand {
     static TripPlannerAlgo algo = new TripPlannerAlgo(arena);
 
     public static void main(String[] args) {
-        arena.addPictureObstacle(18, 18, MapConstants.IMAGE_DIRECTION.NORTH);
-        arena.addPictureObstacle(10, 15, MapConstants.IMAGE_DIRECTION.WEST);
-        arena.addPictureObstacle(10, 13, MapConstants.IMAGE_DIRECTION.WEST);
-        arena.addPictureObstacle(18,11, MapConstants.IMAGE_DIRECTION.SOUTH);
-        arena.addPictureObstacle(2, 11, MapConstants.IMAGE_DIRECTION.SOUTH);
+        arena.addPictureObstacle(18, 5, MapConstants.IMAGE_DIRECTION.NORTH);
+        //arena.addPictureObstacle(10, 15, MapConstants.IMAGE_DIRECTION.WEST);
+        //arena.addPictureObstacle(10, 13, MapConstants.IMAGE_DIRECTION.WEST);
+        arena.addPictureObstacle(15, 10, MapConstants.IMAGE_DIRECTION.SOUTH);
+        //arena.addPictureObstacle(2, 11, MapConstants.IMAGE_DIRECTION.SOUTH);
 
         int[] path = fast.planFastestPath();
+        //TARGET,obstalceNum,TARGETid
+        //comm.sendMsg(":AND:");
 
         comm.connectToRPi();
-
+        //comm.sendMsg(":STM:0008");
         doThePath(path);
+
+        comm.endConnection();
 
 
     }
@@ -54,8 +58,6 @@ public class PathToCommand {
             arrayList = algo.planPath(startX, startY, startAngle, next.getX(), next.getY(), next.getImadeDirectionAngle(), RobotConstants.TURN_RADIUS, true, true);
             sendMovesToRobot(arrayList);
             int[] coords = algo.getReverseCoordinates(next);
-            //bot.setCenterCoordinate(new Point(coords[0], coords[1]));
-            //bot.setDirection(coords[2]);
             startX = coords[0];
             startY = coords[1];
             startAngle = coords[2];
@@ -65,7 +67,11 @@ public class PathToCommand {
 
     private static void sendMovesToRobot(ArrayList<MoveType> moveList) {
         String formatted;
+        String msg;
         INSTRUCTION_TYPE instructionType = null;
+
+        sendToRobot(":STM:0008");
+
         for (MoveType move : moveList) {
             int measure = 0;
             if (move.isLine()) {
@@ -73,28 +79,42 @@ public class PathToCommand {
                 formatted = String.format("%03d", measure);
                 if (move.isReverse()) {
                     instructionType = INSTRUCTION_TYPE.BACKWARD;
-                    comm.sendMsg(formatted + INSTRUCTION_TYPE.encode(instructionType));
                 } else {
                     instructionType = INSTRUCTION_TYPE.FORWARD;
-                    comm.sendMsg(formatted+INSTRUCTION_TYPE.encode(instructionType));
                 }
-
+                msg = ":STM:" + formatted + INSTRUCTION_TYPE.encode(instructionType);
             } else {
-                measure = move.getDirInDegrees();
-                formatted = String.format("%03d", measure);
                 ArcMove moveConverted = (ArcMove) move;
                 if (moveConverted.isTurnLeft()) {
                     instructionType = INSTRUCTION_TYPE.FORWARD_LEFT;
-                    comm.sendMsg(formatted+INSTRUCTION_TYPE.encode(instructionType));
-                    comm.sendMsg("0008");
                 } else {
                     instructionType = INSTRUCTION_TYPE.FORWARD_RIGHT;
-                    comm.sendMsg(formatted+INSTRUCTION_TYPE.encode(instructionType));
-                    comm.sendMsg("0008");
                 }
+                msg = ":STM:090" + INSTRUCTION_TYPE.encode(instructionType);
             }
-            comm.recieveMsg();
+            sendToRobot(msg);
         }
+        takeImage();
+    }
+
+    private static void sendToRobot(String cmd) {
+        comm.sendMsg(cmd);
+        String receiveMsg = null;
+        while (receiveMsg == null || !receiveMsg.equals("A")) {
+            receiveMsg = comm.recieveMsg();
+            //System.out.println("inside loop");
+        }
+        System.out.println("Message: " + receiveMsg + "\n");
+    }
+
+    private static void takeImage() {
+        comm.sendMsg(":IMG:scan");
+        String receiveMsg = null;
+        while (receiveMsg == null || receiveMsg.isEmpty()) {
+            receiveMsg = comm.recieveMsg();
+            //System.out.println("inside loop");
+        }
+        System.out.println("Message: " + receiveMsg + "\n");
     }
 
     private static void moveForwards(int dist) {

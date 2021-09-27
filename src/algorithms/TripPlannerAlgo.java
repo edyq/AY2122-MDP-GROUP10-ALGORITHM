@@ -373,6 +373,29 @@ public class TripPlannerAlgo {
         else return null;
     }
 
+    private int[] getBackwardNode(int x, int y, int dim) {
+        int[] pair;
+        switch (dim) {
+            case 0: // east, x+1,y
+                pair = new int[]{x - 1, y, dim};
+                break;
+            case 1: // north, x,y-1
+                pair = new int[]{x, y + 1, dim};
+                break;
+            case 2: // west, x-1,y
+                pair = new int[]{x + 1, y, dim};
+                break;
+            case 3: // south, x,y-1
+                pair = new int[]{x, y - 1, dim};
+                break;
+            default: // error
+                pair = null;
+                break;
+        }
+        if (pair != null && isValidLocation(pair[0], pair[1], dim)) return pair;
+        else return null;
+    }
+
     // get node to the left of the current node (considering the direction facing)
     private int[] getLeftNode(int x, int y, int dim) {
         int[] pair;
