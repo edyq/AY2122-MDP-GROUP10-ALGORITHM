@@ -232,6 +232,7 @@ public class Main extends Application {
             moveList.add(algo.planPath(startCoords[0], startCoords[1], startCoords[2], n.getX(), n.getY(), n.getImadeDirectionAngle(), turnRadius, true, true));
             startCoords = algo.getReverseCoordinates(n);
         }
+
         label.setText(text);
         seqT = getPathAnimation(robot, moveList);
         //for (ArrayList<MoveType> moves : moveList) {
@@ -286,6 +287,7 @@ public class Main extends Application {
             paths = pathList.get(i);
             startDir = paths.get(0).getDirInDegrees();
             for (MoveType move : paths) {
+                //System.out.println(move.toString());
                 Path path = new Path();
                 PathTransition pathTransition = new PathTransition();
                 pathTransition.setNode(robot);

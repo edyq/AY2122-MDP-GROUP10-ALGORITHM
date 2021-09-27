@@ -532,7 +532,11 @@ public class TripPlannerAlgo {
                     default: // wut
                 }
                 // add the turn to the list
-                pathSegments.add(new ArcMove(lineEnd[0], lineEnd[1], lineStart[0], lineStart[1], dirInDegrees, RobotConstants.TURN_RADIUS, false ));
+                // calculate is left or right turn
+                int prevDirInDegrees = prevDir*90;
+                boolean turnLeft = false;
+                if ((prevDirInDegrees + 90)%360 == dirInDegrees) turnLeft = true;
+                pathSegments.add(new ArcMove(lineEnd[0], lineEnd[1], lineStart[0], lineStart[1], dirInDegrees, RobotConstants.TURN_RADIUS, false , turnLeft));
             }
             curr = next;
         }

@@ -26,8 +26,8 @@ package utils;
  */
 
 public class CommConstants {
-    public static final String HOST_ADDRESS = "";
-    public static final int PORT = 13;
+    public static final String HOST_ADDRESS = "192.168.10.1";
+    public static final int PORT = 5000;
 
     public enum INSTRUCTION_TYPE {
         FORWARD, BACKWARD, FORWARD_LEFT, FORWARD_RIGHT, BACKWARD_LEFT, BACKWARD_RIGHT, SPECIAL, STOP_AFTER, RESET_WHEELS;

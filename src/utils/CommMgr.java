@@ -75,11 +75,14 @@ public class CommMgr {
     public String recieveMsg() {
         try {
             String msg = reader.readLine();
+            while (msg == null || msg.isEmpty()) {
+                msg = reader.readLine();
+            }
             return msg;
         } catch (IOException e) {
-            e.printStackTrace();
+           // e.printStackTrace();
         } catch (Exception e) {
-            e.printStackTrace();
+           // e.printStackTrace();
         }
         return null;
     }
