@@ -7,7 +7,6 @@ public class MapConstants {
 
     public enum IMAGE_DIRECTION{
         NORTH, EAST, SOUTH, WEST;
-
         public static char print(IMAGE_DIRECTION d) {
             switch (d) {
                 case NORTH:
@@ -20,6 +19,21 @@ public class MapConstants {
                     return 'W';
                 default:
                     return 'X';
+            }
+        }
+
+        public static IMAGE_DIRECTION getImageDirection(String s) {
+            switch (s) {
+                case "N":
+                    return NORTH;
+                case "E":
+                    return EAST;
+                case "S":
+                    return SOUTH;
+                case "W":
+                    return WEST;
+                default:
+                    return null;
             }
         }
     }

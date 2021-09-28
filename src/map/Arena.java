@@ -48,7 +48,7 @@ public class Arena extends JPanel {
         }
         //obstacles.put(numberOfObstacles, obstacle);
         obstacles.add(obstacle);
-        System.out.printf("Added obstacle centered at <%d, %d>\n", x, y);
+        System.out.printf("Added obstacle centered at <%d, %d>, with direction %c\n", x, y, MapConstants.IMAGE_DIRECTION.print(imageDirection));
         //numberOfObstacles++;
         return true;
 

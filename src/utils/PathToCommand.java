@@ -22,23 +22,20 @@ public class PathToCommand {
     static TripPlannerAlgo algo = new TripPlannerAlgo(arena);
 
     public static void main(String[] args) {
-        arena.addPictureObstacle(18, 5, MapConstants.IMAGE_DIRECTION.NORTH);
+
+        //arena.addPictureObstacle(18, 5, MapConstants.IMAGE_DIRECTION.NORTH);
         //arena.addPictureObstacle(10, 15, MapConstants.IMAGE_DIRECTION.WEST);
         //arena.addPictureObstacle(10, 13, MapConstants.IMAGE_DIRECTION.WEST);
-        arena.addPictureObstacle(15, 10, MapConstants.IMAGE_DIRECTION.SOUTH);
+        //arena.addPictureObstacle(15, 10, MapConstants.IMAGE_DIRECTION.SOUTH);
         //arena.addPictureObstacle(2, 11, MapConstants.IMAGE_DIRECTION.SOUTH);
 
-        int[] path = fast.planFastestPath();
-        //TARGET,obstalceNum,TARGETid
-        //comm.sendMsg(":AND:");
-
         comm.connectToRPi();
-        //comm.sendMsg(":STM:0008");
+        // receive obstacles from android
+        recvObstacles();
+        int[] path = fast.planFastestPath();
         doThePath(path);
 
         comm.endConnection();
-
-
     }
 
     private static void doThePath(int[] path) {
@@ -93,6 +90,7 @@ public class PathToCommand {
                 msg = ":STM:090" + INSTRUCTION_TYPE.encode(instructionType);
             }
             sendToRobot(msg);
+            sendToAndroid(move);
         }
         takeImage();
     }
@@ -117,7 +115,31 @@ public class PathToCommand {
         System.out.println("Message: " + receiveMsg + "\n");
     }
 
-    private static void moveForwards(int dist) {
+    private static void sendToAndroid(MoveType move) {
+        // TODO: format move coordinates
+        comm.sendMsg(":AND:");
+        // TODO: do we need confirmation here?
+        String receiveMsg = null;
+        while (receiveMsg == null || receiveMsg.isEmpty()) {
+            receiveMsg = comm.recieveMsg();
+        }
+        System.out.println("Message: " + receiveMsg + "\n");
+    }
 
+    private static void recvObstacles() {
+        // todo: do we need something to request the obstacles?
+        String receiveMsg = null;
+        while (receiveMsg == null || receiveMsg.isEmpty()) {
+            receiveMsg = comm.recieveMsg();
+        }
+        System.out.println("Received Obstacles String: " + receiveMsg + "\n");
+
+        // "POS|3,4,N|4,5,E|5,6,S|9,4,N|9,10,E"
+        String[] positions = receiveMsg.split("\\|");
+
+        for (int i = 1; i < positions.length; i++) {
+            String[] obs = positions[i].split(",");
+            arena.addPictureObstacle(Integer.parseInt(obs[0]), Integer.parseInt(obs[1]), MapConstants.IMAGE_DIRECTION.getImageDirection(obs[2]));
+        }
     }
 }
