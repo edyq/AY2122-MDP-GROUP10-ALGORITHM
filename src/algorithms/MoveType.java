@@ -70,5 +70,5 @@ public abstract class MoveType {
                 + x2 + ", " + y2 + ">, rev = " + isReverse;
     }
 
-    public abstract double getRadius();
+    //public abstract double getRadius();
 }

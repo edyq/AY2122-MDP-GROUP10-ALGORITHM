@@ -15,8 +15,10 @@ public class TripPlannerAlgo {
     private final Arena arena;
     private final int numCells = MapConstants.ARENA_WIDTH / MapConstants.OBSTACLE_WIDTH;
     private Node[][][] grid; // grid dimensions: x,y,direction (of which there are 4: 0=east,1=north,2=west,3=south)
-    private int[][][] turningArray; // array to keep track of whether turns are possible at this position
+    //private int[][][] turningArray; // array to keep track of whether turns are possible at this position
     private final Map<Node, Node> predMap;
+    private int[] endPosition; // use this to access the end position of our car.
+    private ArrayList<Node> nodePath;
 
     private PriorityQueue<Node> visitQueue; // min heap priority queue for nodes in the frontier
     private Node currentNode;
@@ -25,6 +27,12 @@ public class TripPlannerAlgo {
     public TripPlannerAlgo(Arena arena) {
         this.arena = arena;
         this.predMap = new HashMap<>();
+        int robotX = arena.getRobot().getX();
+        int robotY = arena.getRobot().getY();
+        int robotDirection = arena.getRobot().getRobotDirectionAngle();
+        //int angleDimension = angleToDimension(robotDirection);
+        endPosition = new int[] {robotX, robotY, robotDirection};
+        this.visitQueue = new PriorityQueue<>(new NodeComparator());
         /*
         constructMap();
 
@@ -61,12 +69,16 @@ public class TripPlannerAlgo {
          */
     }
 
+    public int[] getEndPosition() {
+        return endPosition;
+    }
+
     private void clear(int startX, int startY, int startAngle) {
         predMap.clear();
         constructMap();
-        int angleDimension = angleToDimension(startAngle);
+        //int angleDimension = angleToDimension(startAngle);
 
-        this.currentNode = grid[startY][startX][angleDimension];
+        //this.currentNode = grid[startY][startX][angleDimension];
 
         // initialize the arrays
         int numCells = MapConstants.ARENA_WIDTH / MapConstants.OBSTACLE_WIDTH;
@@ -87,9 +99,9 @@ public class TripPlannerAlgo {
 
         // initialize frontier queue
         visitQueue.clear();
-        this.visitQueue.add(currentNode);
+        //this.visitQueue.add(currentNode);
         //greedyCostArray[robotY][robotX][angleDimension] = 0;
-        grid[startY][startX][angleDimension].setCost(0, 0);
+        //grid[startY][startX][angleDimension].setCost(0, 0);
     }
 
     /**
@@ -105,15 +117,17 @@ public class TripPlannerAlgo {
      * X X X
      * X
      * X   O
-     * <p>
+     *
      * Assuming the car is aligned to the center of the grid (i.e. x=5,y=5),
      * 5+24 = 29; the turning circle will be centered at x=29,y=5. (If we are facing north and turning right)
      * Thus, the robot will require 3 grid units worth of space in either direction to complete a turn.
      * i.e. after changing directions, will require ceiling(turnRadius/10)-1 blocks of room to turn.
      */
-    private int calculateTurnSize(double turnRadius) {
+    private int calculateTurnSize() {
         double gridSize = MapConstants.OBSTACLE_WIDTH;
-        return (int) Math.ceil(turnRadius / gridSize);
+        // get the largest turn radius measure of the four measures
+        double largestRadius = Math.max(Math.max(RobotConstants.LEFT_TURN_RADIUS_X, RobotConstants.LEFT_TURN_RADIUS_Y),Math.max(RobotConstants.RIGHT_TURN_RADIUS_X, RobotConstants.RIGHT_TURN_RADIUS_Y));
+        return (int) Math.ceil(largestRadius / gridSize);
     }
 
     /**
@@ -179,11 +193,12 @@ public class TripPlannerAlgo {
      * <p>
      * input: the x,y, and direction of the picture obstacle, the robot's turn radius
      */
-    public ArrayList<MoveType> planPath(int startX, int startY, int startAngle, int pictureX, int pictureY, int pictureDirInDegrees, double turnRadius, boolean doBacktrack, boolean print) {
+    public ArrayList<MoveType> planPath(int startX, int startY, int startAngle, int pictureX, int pictureY, int pictureDirInDegrees, boolean doBacktrack, boolean print) {
         if (0 > startX || startX >= numCells || 0 > startY || startY >= numCells) { // start is outside of bounds
             this.totalCost += 9999;
             return null;
         }
+        //System.out.println(startX + ", " + startY + ", " + startAngle);
         clear(startX, startY, startAngle);
         int[] goal = getGoalNodePosition(pictureX, pictureY, pictureDirInDegrees);
         int endX = goal[0];
@@ -193,38 +208,47 @@ public class TripPlannerAlgo {
         boolean goalFound = false;                                  // false since goal node has not yet been found
         int endAngleDimension = angleToDimension(endDirInDegrees);  // which dimension of the 3d array does the goal node lie in
         Node goalNode = grid[endY][endX][endAngleDimension];        // fetch the goal node from the grid array.
-        int maxTurnCount = calculateTurnSize(turnRadius);            // get the number of grids that the car needs to move straight after changing directions (for a legal turn)
+        int maxTurnCount = calculateTurnSize();            // get the number of grids that the car needs to move straight after changing directions (for a legal turn)
         // this is the counter for the turnArray. Only when turnArray[y][x] = turnMaxCount is a turn allowed to be made.
         int x, y, dim;
         int minTurnCount = (int)Math.floor(maxTurnCount / 2.0);
         //System.out.println(minTurnCount);
         //Robot r = arena.getRobot();
-        turningArray[startY][startX][angleToDimension(startAngle)] = minTurnCount; // make robot starting position half the required grids to turn. // TODO: new
+        //turningArray[startY][startX][angleToDimension(startAngle)] = minTurnCount; // make robot starting position half the required grids to turn. // TODO: new
         Node nextNode;
-        int[] forwardLocation, leftLocation, rightLocation;
+        int[] forwardLocation, leftLocation, rightLocation, backwardLocation;
         int nextX, nextY, nextDim, currentTurnCount;
         double currentGCost, hCost, gCost;
         // lets start searching, baby
         // TODO: need a way to revisit nodes, especially if the goal is found but in an undesirable state (i.e. we are still making a turn)
+
+        int angleDimension = angleToDimension(startAngle);
+
+        this.currentNode = grid[startY][startX][angleDimension];
+        this.visitQueue.add(currentNode);
+        grid[startY][startX][angleDimension].setCost(0, 0);
+
         while (!goalFound && !visitQueue.isEmpty()) {
             currentNode = visitQueue.remove(); // Fetch the head of the priority queue
 
             x = currentNode.getX();
             y = currentNode.getY();
             dim = currentNode.getDim(); // 0 = east, 1 = north, 2 = west, 3 = south (counter-clockwise)
-            currentTurnCount = turningArray[y][x][dim];
+            //currentTurnCount = turningArray[y][x][dim];
             currentGCost = currentNode.getGCost();
 
             if (currentNode == goalNode) {      // we have found the goal
                 // TODO: consider multiple goal states? (i.e. the nodes to the left and right of the goal node as well)
-                if (currentTurnCount < minTurnCount) { // we are still turning when we reached the goal state - thus, we cannot end the search.
-                    continue; // go to the next iteration, and hope we rediscover the goal node again when we are not turning this time
-                }
+                //if (currentTurnCount < minTurnCount) { // we are still turning when we reached the goal state - thus, we cannot end the search.
+                //    continue; // go to the next iteration, and hope we rediscover the goal node again when we are not turning this time
+                //}
                 goalFound = true; // otherwise, we are good to go (search over)!
+                endPosition = new int[] {x,y,dim*90};
                 break;
             }
 
             forwardLocation = getForwardNode(x, y, dim);
+            /*
             if (currentTurnCount != maxTurnCount) { // if we haven't reached a turning point, we can only consider nodes forwards
                 // get the forward facing node
                 if (forwardLocation != null) { // if this is a valid location to search, add it to the queue
@@ -244,65 +268,80 @@ public class TripPlannerAlgo {
                     turningArray[nextY][nextX][nextDim] = currentTurnCount + 1; // increment the turn count for the next location.
                 }
             } else { // otherwise, we can turn here and should consider the nodes forwards, to the respective left, and the respective right of the current node.
-                leftLocation = getLeftNode(x, y, dim);
-                rightLocation = getRightNode(x, y, dim);
-                if (forwardLocation != null) { // if this is a valid location to search, add it to the queue
-                    nextX = forwardLocation[0];
-                    nextY = forwardLocation[1];
-                    nextDim = forwardLocation[2];
+            */
+            leftLocation = getLeftNode(x, y, dim, maxTurnCount);
+            rightLocation = getRightNode(x, y, dim, maxTurnCount);
+            backwardLocation = getBackwardNode(x,y,dim);
+            if (forwardLocation != null) { // if this is a valid location to search, add it to the queue
+                nextX = forwardLocation[0];
+                nextY = forwardLocation[1];
+                nextDim = forwardLocation[2];
 
-                    nextNode = grid[nextY][nextX][nextDim];
-                    predMap.put(nextNode, currentNode);
+                nextNode = grid[nextY][nextX][nextDim];
+                predMap.put(nextNode, currentNode);
 
-                    gCost = currentGCost + greedy(currentNode, nextNode);
-                    hCost = heuristic(currentNode, goalNode, endAngleDimension);
+                gCost = currentGCost + greedy(currentNode, nextNode);
+                hCost = heuristic(currentNode, goalNode, endAngleDimension);
 
-                    nextNode.setCost(hCost, gCost); // set the cost for the next node and then add to the priority queue
-                    visitQueue.add(nextNode);
-                    turningArray[nextY][nextX][nextDim] = currentTurnCount; // we can still make a turn, so turning array is max.
-                }
-                if (leftLocation != null) { // if this is a valid location to search, add it to the queue
-                    nextX = leftLocation[0];
-                    nextY = leftLocation[1];
-                    nextDim = leftLocation[2];
+                nextNode.setCost(hCost, gCost); // set the cost for the next node and then add to the priority queue
+                visitQueue.add(nextNode);
+                //turningArray[nextY][nextX][nextDim] = currentTurnCount; // we can still make a turn, so turning array is max.
+            }
+            if (backwardLocation != null) {
+                nextX = backwardLocation[0];
+                nextY = backwardLocation[1];
+                nextDim = backwardLocation[2];
 
-                    nextNode = grid[nextY][nextX][nextDim];
-                    predMap.put(nextNode, currentNode);
+                nextNode = grid[nextY][nextX][nextDim];
+                predMap.put(nextNode, currentNode);
 
-                    gCost = currentGCost + greedy(currentNode, nextNode);
-                    hCost = heuristic(currentNode, goalNode, endAngleDimension);
+                gCost = currentGCost + greedy(currentNode, nextNode);
+                hCost = heuristic(currentNode, goalNode, endAngleDimension);
 
-                    nextNode.setCost(hCost, gCost); // set the cost for the next node and then add to the priority queue
-                    visitQueue.add(nextNode);
-                    turningArray[nextY][nextX][nextDim] = 0; // turn has started, set to 0.
-                    if (nextNode == goalNode) continue;
-                }
-                if (rightLocation != null) { // if this is a valid location to search, add it to the queue
-                    nextX = rightLocation[0];
-                    nextY = rightLocation[1];
-                    nextDim = rightLocation[2];
+                nextNode.setCost(hCost, gCost); // set the cost for the next node and then add to the priority queue
+                visitQueue.add(nextNode);
+                //turningArray[nextY][nextX][nextDim] = currentTurnCount;
+            }
+            if (leftLocation != null) { // if this is a valid location to search, add it to the queue
+                nextX = leftLocation[0];
+                nextY = leftLocation[1];
+                nextDim = leftLocation[2];
 
-                    nextNode = grid[nextY][nextX][nextDim];
-                    predMap.put(nextNode, currentNode);
+                nextNode = grid[nextY][nextX][nextDim];
+                predMap.put(nextNode, currentNode);
 
-                    gCost = currentGCost + greedy(currentNode, nextNode);
-                    hCost = heuristic(currentNode, goalNode, endAngleDimension);
+                gCost = currentGCost + greedy(currentNode, nextNode);
+                hCost = heuristic(currentNode, goalNode, endAngleDimension);
 
-                    nextNode.setCost(hCost, gCost); // set the cost for the next node and then add to the priority queue
-                    visitQueue.add(nextNode);
-                    turningArray[nextY][nextX][nextDim] = 0; // turn has started, set to 0.
-                    if (nextNode == goalNode) continue;
-                }
+                nextNode.setCost(hCost, gCost); // set the cost for the next node and then add to the priority queue
+                visitQueue.add(nextNode);
+                //turningArray[nextY][nextX][nextDim] = 0; // turn has started, set to 0.
+                //if (nextNode == goalNode) continue;
+            }
+            if (rightLocation != null) { // if this is a valid location to search, add it to the queue
+                nextX = rightLocation[0];
+                nextY = rightLocation[1];
+                nextDim = rightLocation[2];
+
+                nextNode = grid[nextY][nextX][nextDim];
+                predMap.put(nextNode, currentNode);
+
+                gCost = currentGCost + greedy(currentNode, nextNode);
+                hCost = heuristic(currentNode, goalNode, endAngleDimension);
+
+                nextNode.setCost(hCost, gCost); // set the cost for the next node and then add to the priority queue
+                visitQueue.add(nextNode);
             }
             currentNode.setHasBeenVisited(true);
         }
+        // when we exit the loop, check if the goal has been found or not.
         if (!goalFound) {
             this.totalCost += 9999;
-            System.out.println("goal not found");
+            System.out.println(pictureX + ", " + pictureY + ": goal not found");
             return null;
         }
         if (doBacktrack) {
-            path = backtrack(goalNode, turnRadius, print);
+            path = backtrack(goalNode, print);
         }
         if (print && doBacktrack) {
             System.out.println("Total cost: " + goalNode.getGCost());
@@ -314,9 +353,8 @@ public class TripPlannerAlgo {
 
     /**
      * Calculate the coordinates to reverse to
-     * @param obs picture obstacle
-     * @return array, [xCoord, yCoord, finalCarAngleInDegrees]
      */
+    /*
     public int[] getReverseCoordinates(PictureObstacle obs) {
         int x = obs.getX();
         int y = obs.getY();
@@ -341,6 +379,7 @@ public class TripPlannerAlgo {
         }
         return goalArray;
     }
+    */
 
     public void clearCost() {
         this.totalCost = 0;
@@ -362,7 +401,7 @@ public class TripPlannerAlgo {
             case 2: // west, x-1,y
                 pair = new int[]{x - 1, y, dim};
                 break;
-            case 3: // south, x,y-1
+            case 3: // south, x,y+1
                 pair = new int[]{x, y + 1, dim};
                 break;
             default: // error
@@ -397,49 +436,63 @@ public class TripPlannerAlgo {
     }
 
     // get node to the left of the current node (considering the direction facing)
-    private int[] getLeftNode(int x, int y, int dim) {
+    private int[] getLeftNode(int x, int y, int dim, int maxTurnCount) {
         int[] pair;
+        int[] check; // make sure this location is not occupied in order to make the turn
+        int nextPos = maxTurnCount-1;
         switch (dim) {
             case 0: // east, x,y-1 (facing north)
-                pair = new int[]{x, y - 1, 1};
+                pair = new int[]{x + nextPos, y - nextPos, 1}; //{x, y - 1, 1};
+                check = new int[]{x + nextPos,y,1};
                 break;
             case 1: // north, x-1,y (facing west)
-                pair = new int[]{x - 1, y, 2};
+                pair = new int[]{x - nextPos, y - nextPos, 2}; //{x - 1, y, 2};
+                check = new int[]{x,y-nextPos,1};
                 break;
             case 2: // west, x,y+1 (facing south)
-                pair = new int[]{x, y + 1, 3};
+                pair = new int[]{x - nextPos, y + nextPos, 3}; //{x, y + 1, 3};
+                check = new int[]{x-nextPos,y,3};
                 break;
             case 3: // south, x+1,y (facing east)
-                pair = new int[]{x + 1, y, 0};
+                pair = new int[]{x + nextPos, y + nextPos, 0}; //{x + 1, y, 0};
+                check = new int[]{x,y+nextPos,0};
                 break;
             default: // error
                 pair = null;
+                check = null;
                 break;
         }
-        if (pair != null && isValidLocation(pair[0], pair[1], pair[2])) return pair;
+        if (pair != null && isValidLocation(pair[0], pair[1], pair[2]) && isValidLocation(check[0], check[1], check[2])) return pair;
         else return null;
     }
 
-    private int[] getRightNode(int x, int y, int dim) {
+    private int[] getRightNode(int x, int y, int dim, int maxTurnCount) {
         int[] pair;
+        int[] check;
+        int nextPos = maxTurnCount-1;
         switch (dim) {
             case 0: // east, x,y+1 (facing south)
-                pair = new int[]{x, y + 1, 3};
+                pair = new int[]{x + nextPos, y+ nextPos, 3}; //{x, y + 1, 3};
+                check = new int[]{x + nextPos,y,3};
                 break;
             case 1: // north, x+1,y (facing east)
-                pair = new int[]{x + 1, y, 0};
+                pair = new int[]{x + nextPos, y - nextPos, 0}; //{x + 1, y, 0};
+                check = new int[]{x,y-nextPos,0};
                 break;
             case 2: // west, x,y-1 (facing north)
-                pair = new int[]{x, y - 1, 1};
+                pair = new int[]{x - nextPos, y - nextPos, 1}; //{x, y - 1, 1};
+                check = new int[]{x-nextPos,y,1};
                 break;
             case 3: // south, x-1,y (facing west)
-                pair = new int[]{x - 1, y, 2};
+                pair = new int[]{x - nextPos, y + nextPos, 2}; //{x - 1, y, 2};
+                check = new int[]{x,y+nextPos,2};
                 break;
             default: // error
                 pair = null;
+                check = null;
                 break;
         }
-        if (pair != null && isValidLocation(pair[0], pair[1], pair[2])) return pair;
+        if (pair != null && isValidLocation(pair[0], pair[1], pair[2])  && isValidLocation(check[0], check[1], check[2])) return pair;
         else return null;
     }
 
@@ -473,30 +526,37 @@ public class TripPlannerAlgo {
     /**
      * backtrack from the goal node to get the path
      */
-    private ArrayList<MoveType> backtrack(Node end, double turnRadius, boolean print) {
+    private ArrayList<MoveType> backtrack(Node end, boolean print) {
         // TODO: give in terms of line segments
-        Node curr, next;
+        Node curr, prev;
         ArrayList<Node> path = new ArrayList<>();
         ArrayList<MoveType> pathSegments = new ArrayList<>();
         path.add(end);
-        curr = predMap.get(end);
+        curr = end;
         int midpoint = MapConstants.OBSTACLE_WIDTH / 2;
+        int diff = calculateTurnSize()*MapConstants.OBSTACLE_WIDTH-MapConstants.OBSTACLE_WIDTH;
         double[] lineEnd = new double[]{end.getX() * MapConstants.OBSTACLE_WIDTH + midpoint, end.getY() * MapConstants.OBSTACLE_WIDTH + midpoint}; // keep track of the end point(x2,y2) of the line segment
         double[] lineStart = new double[2];
 
-        int prevDir = curr.getDim();
-        double newEndX, newEndY;
+        int prevDir; // = curr.getDim();
+        int currDir;
+        double radiusX, radiusY; // the radius we want to use for the turn.
+        //int prevDirInDegrees = prevDir*90;
+        boolean turnLeft;
         int dirInDegrees;
         boolean reversing;
+        //System.out.println(end.getX() + ", " + end.getY() + ", " + end.getDim());
+        //System.out.println(curr.getX());
+        //System.out.println(predMap.get(curr).getDim());
         while (curr != null) {
             reversing = false;
             path.add(curr);
-            next = predMap.get(curr);
-            dirInDegrees = prevDir*90;
-            if (next == null) { // this is the starting line
+            prev = predMap.get(curr); // get the previous node in the backtrack
+            currDir = curr.getDim();
+            if (prev == null) { // if this is the last node, handle the special case.
                 lineStart[0] = curr.getX() * MapConstants.OBSTACLE_WIDTH + midpoint;
                 lineStart[1] = curr.getY() * MapConstants.OBSTACLE_WIDTH + midpoint;
-                switch (prevDir) {
+                switch (currDir) { // check if reversing
                     case 0: // east
                         if (lineEnd[0] < lineStart[0]) reversing = true;
                         break;
@@ -511,67 +571,89 @@ public class TripPlannerAlgo {
                         break;
                     default: // wut
                 }
-                pathSegments.add(new LineMove(lineStart[0], lineStart[1], lineEnd[0], lineEnd[1], dirInDegrees, true, reversing));
-            } else if (next.getDim() != prevDir) { // if direction changes, record the point at which that occurs
-                lineStart[0] = next.getX() * MapConstants.OBSTACLE_WIDTH + midpoint;
-                lineStart[1] = next.getY() * MapConstants.OBSTACLE_WIDTH + midpoint;
-                //                 // check if moving in opposite direction
-                switch (prevDir) {
+                pathSegments.add(new LineMove(lineStart[0], lineStart[1], lineEnd[0], lineEnd[1], currDir*90, true, reversing));
+            } else if (prev.getDim() != currDir) { // otherwise, only look for points where direction changes to construct the line segments
+                prevDir = prev.getDim();
+                lineStart[0] = curr.getX() * MapConstants.OBSTACLE_WIDTH + midpoint;
+                lineStart[1] = curr.getY() * MapConstants.OBSTACLE_WIDTH + midpoint;
+                //System.out.println("Y: " + lineStart[0]);
+                //System.out.println("Y (prev): " + (prev.getX() * MapConstants.OBSTACLE_WIDTH + midpoint));
+
+                // check if it's a left or right turn being made
+                dirInDegrees = prev.getDim()*90;
+                if ((dirInDegrees + 90)%360 == curr.getDim()*90) {
+                    turnLeft = true;
+                    radiusX = RobotConstants.LEFT_TURN_RADIUS_X;
+                    radiusY = RobotConstants.LEFT_TURN_RADIUS_Y;
+                } else {
+                    turnLeft = false;
+                    radiusX = RobotConstants.RIGHT_TURN_RADIUS_X;
+                    radiusY = RobotConstants.RIGHT_TURN_RADIUS_Y;
+                }
+
+                // calculate the correct endpoints based on the radius for the line segment portion
+                switch (currDir) { // as we are turning into the line, use the X radius.
                     case 0: // east
-                        lineStart[0] += turnRadius;
+                        lineStart[0] -= diff-radiusX;
                         if (lineEnd[0] < lineStart[0]) reversing = true;
                         break;
                     case 1: // north
-                        lineStart[1] -= turnRadius;
+                        lineStart[1] += diff-radiusX;
                         if (lineEnd[1] > lineStart[1]) reversing = true;
                         break;
                     case 2: // west
-                        lineStart[0] -= turnRadius;
+                        lineStart[0] += diff-radiusX;
                         if (lineEnd[0] > lineStart[0]) reversing = true;
                         break;
                     case 3: // south
-                        lineStart[1] += turnRadius;
+                        lineStart[1] -= diff-radiusX;
                         if (lineEnd[1] < lineStart[1]) reversing = true;
                         break;
                     default: // wut
                 }
                 pathSegments.add(new LineMove(lineStart[0], lineStart[1], lineEnd[0], lineEnd[1], dirInDegrees, true, reversing));
-                prevDir = next.getDim();
-                lineEnd[0] = next.getX() * MapConstants.OBSTACLE_WIDTH + midpoint;
-                lineEnd[1] = next.getY() * MapConstants.OBSTACLE_WIDTH + midpoint;
+
+                // now, calculate the turn between the two points.
+                // Note: start of the curve = prev location (lineEnd of the next line). End of the curve = lineStart coordinates
+                lineEnd[0] = prev.getX() * MapConstants.OBSTACLE_WIDTH + midpoint;
+                lineEnd[1] = prev.getY() * MapConstants.OBSTACLE_WIDTH + midpoint;
                 switch (prevDir) {
                     case 0: // east
-                        lineEnd[0] -= turnRadius;
+                        lineEnd[0] += diff-radiusY;
+                        System.out.println("reach");
                         break;
                     case 1: // north
-                        lineEnd[1] += turnRadius;
+                        lineEnd[1] -= diff-radiusY;
                         break;
                     case 2: // west
-                        lineEnd[0] += turnRadius;
+                        lineEnd[0] -= diff-radiusY;
                         break;
                     case 3: // south
-                        lineEnd[1] -= turnRadius;
+                        lineEnd[1] += diff-radiusY;
                         break;
                     default: // wut
                 }
-                // add the turn to the list
-                // calculate is left or right turn
-                int prevDirInDegrees = prevDir*90;
-                boolean turnLeft = false;
-                if ((prevDirInDegrees + 90)%360 == dirInDegrees) turnLeft = true;
-                pathSegments.add(new ArcMove(lineEnd[0], lineEnd[1], lineStart[0], lineStart[1], dirInDegrees, RobotConstants.TURN_RADIUS, false , turnLeft));
+                pathSegments.add(new ArcMove(lineEnd[0], lineEnd[1], lineStart[0], lineStart[1], dirInDegrees, radiusX, radiusY, false , turnLeft));
             }
-            curr = next;
+            curr = prev;
         }
         Collections.reverse(path); // reverse the path and put it in the correct order
         if (print) printPath(path);
-        //if (pathSegments.get(0).getLength() <= 2) //pathSegments.get(0).reverse();
+        nodePath = path; // save the path for sending to android team
         Collections.reverse(pathSegments);
         System.out.println(pathSegments.get(0).getDirInDegrees());
+
+        //for (Node i:path) {
+        //    System.out.println("<" + i.getX() + ", " + i.getY() + ">");
+        //}
 
         for (MoveType i : pathSegments) System.out.println(i.toString());
 
         return pathSegments;
+    }
+
+    public ArrayList<Node> getNodePath() {
+        return nodePath;
     }
 
     private boolean isValidLocation(int x, int y, int dim) {
@@ -624,19 +706,19 @@ public class TripPlannerAlgo {
             }
         }
 
-        //constructMap();
 
-        int robotX = arena.getRobot().getX();
-        int robotY = arena.getRobot().getY();
-        int robotDirection = arena.getRobot().getRobotDirectionAngle();
-        angleDimension = angleToDimension(robotDirection);
+        //int robotX = arena.getRobot().getX();
+        //int robotY = arena.getRobot().getY();
+        //int robotDirection = arena.getRobot().getRobotDirectionAngle();
+        //angleDimension = angleToDimension(robotDirection);
 
-        this.currentNode = grid[robotY][robotX][angleDimension];
+        //this.currentNode = grid[endPosition[1]][endPosition[0]][endPosition[2]];
+        //endPosition = new int[] {robotX, robotY, angleDimension};
 
         // initialize the arrays
         int numCells = MapConstants.ARENA_WIDTH / MapConstants.OBSTACLE_WIDTH;
         //this.greedyCostArray = new double[numCells][numCells][4];
-        this.turningArray = new int[numCells][numCells][4];
+        //this.turningArray = new int[numCells][numCells][4];
         for (int i = 0; i < numCells; i++) {
             for (int j = 0; j < numCells; j++) {
                 for (int k = 0; k < 4; k++) {
@@ -652,10 +734,10 @@ public class TripPlannerAlgo {
         }
 
         // initialize frontier queue
-        this.visitQueue = new PriorityQueue<>(new NodeComparator());
-        this.visitQueue.add(currentNode);
+        //this.visitQueue = new PriorityQueue<>(new NodeComparator());
+        //this.visitQueue.add(currentNode);
         //greedyCostArray[robotY][robotX][angleDimension] = 0;
-        grid[robotY][robotX][angleDimension].setCost(0, 0);
+        //grid[endPosition[1]][endPosition[0]][endPosition[2]].setCost(0, 0);
     }
 
     private int angleToDimension(int angle) {

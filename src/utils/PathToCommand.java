@@ -6,6 +6,7 @@ import algorithms.MoveType;
 import algorithms.TripPlannerAlgo;
 import map.Arena;
 import map.MapConstants;
+import map.Node;
 import map.PictureObstacle;
 import robot.Robot;
 import robot.RobotConstants;
@@ -21,19 +22,23 @@ public class PathToCommand {
     static FastestPathAlgo fast = new FastestPathAlgo(arena);
     static TripPlannerAlgo algo = new TripPlannerAlgo(arena);
 
-    public static void main(String[] args) {
 
+    public static void main(String[] args) {
         //arena.addPictureObstacle(18, 5, MapConstants.IMAGE_DIRECTION.NORTH);
         //arena.addPictureObstacle(10, 15, MapConstants.IMAGE_DIRECTION.WEST);
         //arena.addPictureObstacle(10, 13, MapConstants.IMAGE_DIRECTION.WEST);
         //arena.addPictureObstacle(15, 10, MapConstants.IMAGE_DIRECTION.SOUTH);
         //arena.addPictureObstacle(2, 11, MapConstants.IMAGE_DIRECTION.SOUTH);
 
+
+        //TARGET,obstalceNum,TARGETid
+
         comm.connectToRPi();
         // receive obstacles from android
         recvObstacles();
         int[] path = fast.planFastestPath();
         doThePath(path);
+        //sendPathToAndroid();
 
         comm.endConnection();
     }
@@ -52,9 +57,10 @@ public class PathToCommand {
             next = map.get(i);
             System.out.println("---------------Path " + count + "---------------");
             System.out.println(next.getX() + ", " + next.getY());
-            arrayList = algo.planPath(startX, startY, startAngle, next.getX(), next.getY(), next.getImadeDirectionAngle(), RobotConstants.TURN_RADIUS, true, true);
+            arrayList = algo.planPath(startX, startY, startAngle, next.getX(), next.getY(), next.getImadeDirectionAngle(), true, true);
+            sendPathToAndroid();
             sendMovesToRobot(arrayList);
-            int[] coords = algo.getReverseCoordinates(next);
+            int[] coords = algo.getEndPosition();
             startX = coords[0];
             startY = coords[1];
             startAngle = coords[2];
@@ -65,7 +71,7 @@ public class PathToCommand {
     private static void sendMovesToRobot(ArrayList<MoveType> moveList) {
         String formatted;
         String msg;
-        INSTRUCTION_TYPE instructionType = null;
+        INSTRUCTION_TYPE instructionType;
 
         sendToRobot(":STM:0008");
 
@@ -90,7 +96,6 @@ public class PathToCommand {
                 msg = ":STM:090" + INSTRUCTION_TYPE.encode(instructionType);
             }
             sendToRobot(msg);
-            sendToAndroid(move);
         }
         takeImage();
     }
@@ -100,7 +105,6 @@ public class PathToCommand {
         String receiveMsg = null;
         while (receiveMsg == null || !receiveMsg.equals("A")) {
             receiveMsg = comm.recieveMsg();
-            //System.out.println("inside loop");
         }
         System.out.println("Message: " + receiveMsg + "\n");
     }
@@ -110,26 +114,22 @@ public class PathToCommand {
         String receiveMsg = null;
         while (receiveMsg == null || receiveMsg.isEmpty()) {
             receiveMsg = comm.recieveMsg();
-            //System.out.println("inside loop");
         }
         System.out.println("Message: " + receiveMsg + "\n");
     }
 
-    private static void sendToAndroid(MoveType move) {
-        // TODO: format move coordinates
-        comm.sendMsg(":AND:");
-        // TODO: do we need confirmation here?
-        String receiveMsg = null;
-        while (receiveMsg == null || receiveMsg.isEmpty()) {
-            receiveMsg = comm.recieveMsg();
+    private static void sendPathToAndroid() {
+        ArrayList<Node> path = algo.getNodePath();
+        String pathString = ":AND:PATH";
+        for (Node n : path) {
+            pathString += "|" + n.getX() + "," + n.getY() + "," + n.getDim()*90;
         }
-        System.out.println("Message: " + receiveMsg + "\n");
+        System.out.println(pathString);
     }
 
     private static void recvObstacles() {
-        // todo: do we need something to request the obstacles?
         String receiveMsg = null;
-        while (receiveMsg == null || receiveMsg.isEmpty()) {
+        while (receiveMsg == null || !receiveMsg.substring(0,4).equals("POS")) {
             receiveMsg = comm.recieveMsg();
         }
         System.out.println("Received Obstacles String: " + receiveMsg + "\n");

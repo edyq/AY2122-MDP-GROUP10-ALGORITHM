@@ -91,9 +91,9 @@ public class FastestPathAlgo {
         algo.constructMap();
         for (int i : path) {
             next = list.get(i);
-            algo.planPath(startX, startY, startAngle, next.getX(), next.getY(), next.getImadeDirectionAngle(), RobotConstants.TURN_RADIUS, false, false);
+            algo.planPath(startX, startY, startAngle, next.getX(), next.getY(), next.getImadeDirectionAngle(),false, false);
             // do the reverse before finding the next path
-            int[] coords = algo.getReverseCoordinates(next);
+            int[] coords = algo.getEndPosition();
             //bot.setCenterCoordinate(new Point(coords[0], coords[1]));
             //bot.setDirection(coords[2]);
             startX = coords[0];

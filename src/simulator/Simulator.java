@@ -43,11 +43,11 @@ public class Simulator {
 
         //arena.addPictureObstacle(16, 11, IMAGE_DIRECTION.EAST);
         //arena.addPictureObstacle(15, 0, IMAGE_DIRECTION.SOUTH);
-        arena.addPictureObstacle(18, 18, IMAGE_DIRECTION.NORTH);
-        arena.addPictureObstacle(10, 15, IMAGE_DIRECTION.WEST);
-        arena.addPictureObstacle(10, 13, IMAGE_DIRECTION.WEST);
-        arena.addPictureObstacle(18,11,IMAGE_DIRECTION.SOUTH);
-        arena.addPictureObstacle(2, 11, IMAGE_DIRECTION.SOUTH);
+        //arena.addPictureObstacle(18, 18, IMAGE_DIRECTION.NORTH);
+        //arena.addPictureObstacle(10, 15, IMAGE_DIRECTION.WEST);
+        //arena.addPictureObstacle(10, 13, IMAGE_DIRECTION.WEST);
+        //arena.addPictureObstacle(18,11,IMAGE_DIRECTION.SOUTH);
+        //arena.addPictureObstacle(2, 11, IMAGE_DIRECTION.SOUTH);
         fast = new FastestPathAlgo(arena);
         algo = new TripPlannerAlgo(arena);
         int[] path = fast.planFastestPath();
@@ -75,7 +75,7 @@ public class Simulator {
             next = map.get(i);
             System.out.println("---------------Path " + count + "---------------");
             System.out.println(next.getX() + ", " + next.getY());
-            algo.planPath(startX, startY, startAngle, next.getX(), next.getY(), next.getImadeDirectionAngle(), RobotConstants.TURN_RADIUS, true, true);
+            algo.planPath(startX, startY, startAngle, next.getX(), next.getY(), next.getImadeDirectionAngle(), true, true);
             /*
             int x = next.getX();
             int y = next.getY();
@@ -99,9 +99,10 @@ public class Simulator {
                 default:
             }
              */
-            int[] coords = algo.getReverseCoordinates(next);
+            //int[] coords = algo.getReverseCoordinates(next);
             //bot.setCenterCoordinate(new Point(coords[0], coords[1]));
             //bot.setDirection(coords[2]);
+            int coords[] = algo.getEndPosition();
             startX = coords[0];
             startY = coords[1];
             startAngle = coords[2];
