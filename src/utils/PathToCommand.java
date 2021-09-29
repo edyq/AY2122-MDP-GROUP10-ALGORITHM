@@ -13,6 +13,7 @@ import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Timer;
+import java.util.concurrent.TimeUnit;
 
 public class PathToCommand {
     static Robot bot = new Robot(RobotConstants.ROBOT_INITIAL_CENTER_COORDINATES, RobotConstants.ROBOT_DIRECTION.NORTH, false);
@@ -75,7 +76,6 @@ public class PathToCommand {
             System.out.println(next.getX() + ", " + next.getY());
             arrayList = algo.planPath(startX, startY, startAngle, next.getX(), next.getY(), next.getImadeDirectionAngle(), true, true);
             if (arrayList != null) {// if there is a path
-                sendPathToAndroid();
                 sendMovesToRobot(arrayList, i);
                 int[] coords = algo.getEndPosition();
                 startX = coords[0];
@@ -122,6 +122,7 @@ public class PathToCommand {
             //sendToRobot(msg);
             //if (!move.isLine()) sendToRobot(":STM:0008");
         }
+
         sendToRobot(commandsToSend.substring(0,commandsToSend.length()-1));
         String str = takeImage();
         sendImageToAndroid(i, str);
@@ -130,16 +131,22 @@ public class PathToCommand {
     private static void sendToRobot(String cmd) {
         comm.sendMsg(cmd);
         String receiveMsg = null;
-        LocalDateTime then = LocalDateTime.now();
-        while (receiveMsg == null || !receiveMsg.equals("ACK")) {
-            receiveMsg = comm.recieveMsg();
-            if (ChronoUnit.SECONDS.between(then, LocalDateTime.now()) >= 5) {
-                comm.sendMsg(cmd);
-                System.out.println("Resending message....");
-                then = LocalDateTime.now();
-            }
-        }
-        receiveMsg = null;
+        //LocalDateTime then = LocalDateTime.now();
+        //while (receiveMsg == null || !receiveMsg.equals("ACK")) {
+        //    receiveMsg = comm.recieveMsg();
+        //    if (ChronoUnit.SECONDS.between(then, LocalDateTime.now()) >= 5) {
+        //        System.out.println(receiveMsg);
+        //        System.out.println("Resending message....");
+        //        comm.sendMsg(cmd);
+        //        then = LocalDateTime.now();
+        //    }
+        //}
+        //System.out.println(receiveMsg);
+        //receiveMsg = null;
+        try {
+            Thread.sleep(500);//time is in ms (1000 ms = 1 second)
+        } catch (InterruptedException e) {e.printStackTrace();}
+        sendPathToAndroid();
         while (receiveMsg == null || !receiveMsg.equals("A")) {
             receiveMsg = comm.recieveMsg();
         }
