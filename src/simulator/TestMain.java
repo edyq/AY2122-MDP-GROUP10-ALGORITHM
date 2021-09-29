@@ -21,7 +21,7 @@ import java.util.Map;
  * This class should be executed when running simulation,
  * which would not connect to the physical robot or any other device.
  */
-public class Simulator {
+public class TestMain {
     private static JFrame _appFrame = null;
     private static JPanel _mapCards = null;
     private static JPanel _buttons = null;

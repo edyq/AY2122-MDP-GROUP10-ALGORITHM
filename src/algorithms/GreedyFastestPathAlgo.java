@@ -13,11 +13,11 @@ import java.util.stream.IntStream;
 /**
  * This class will be used to find the fasted path to visit all obstacles
  */
-public class FastestPathAlgo {
+public class GreedyFastestPathAlgo {
     private final Arena arena;
 
 
-    public FastestPathAlgo(Arena arena) {
+    public GreedyFastestPathAlgo(Arena arena) {
         this.arena = arena;
     }
 
@@ -30,13 +30,13 @@ public class FastestPathAlgo {
         double smallestCost = Double.MAX_VALUE;
         int[] shortestPath = permutations.get(0);
         for (int[] permutation : permutations) {
-            //ArrayList<Point> coordinates = new ArrayList<Point>();
-            //coordinates.add(RobotConstants.ROBOT_INITIAL_CENTER_COORDINATES);
-            //for (int key : permutation) {
-            //    coordinates.add(arena.getObstacles().get(key).getCenterCoordinate());
-            //}
+            ArrayList<Point> coordinates = new ArrayList<Point>();
+            coordinates.add(RobotConstants.ROBOT_INITIAL_CENTER_COORDINATES);
+            for (int key : permutation) {
+                coordinates.add(arena.getObstacles().get(key).getCenterCoordinate());
+            }
             //double pathDistance = getPathDistance(coordinates);
-            double pathCost = getPathCost(permutation, list, algo);
+            double pathCost = getPathDistance(coordinates);//getPathCost(permutation, list, algo);
             if (pathCost < smallestCost) {
                 smallestCost = pathCost;
                 shortestPath = permutation;
@@ -70,7 +70,7 @@ public class FastestPathAlgo {
             swap(tempPermutation, i, n - 1);
         }
     }
-    /*
+
     private double getPathDistance(ArrayList<Point> coordinates) {
         double pathDistance = 0.0;
         for (int i = 0; i < coordinates.size() - 1; i++) {
@@ -78,9 +78,9 @@ public class FastestPathAlgo {
         }
         return pathDistance;
     }
-     */
 
-    public double getPathCost(int[] path, ArrayList<PictureObstacle> list, TripPlannerAlgo algo) {
+
+    private double getPathCost(int[] path, ArrayList<PictureObstacle> list, TripPlannerAlgo algo) {
         //double pathDistance = 0.0;
         PictureObstacle next;
         Robot bot = arena.getRobot();
@@ -106,9 +106,8 @@ public class FastestPathAlgo {
         bot.setDirection(RobotConstants.ROBOT_DIRECTION.NORTH);
         return cost;
     }
-    /*
+
     private double getDistance(Point p1, Point p2) {
         return Math.hypot(p1.x - p2.x, p1.y - p2.y);
     }
-     */
 }

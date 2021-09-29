@@ -1,4 +1,4 @@
-package sample;
+package GUI;
 
 import algorithms.ArcMove;
 import algorithms.FastestPathAlgo;
@@ -10,9 +10,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
-import javafx.geometry.HPos;
 import javafx.geometry.Pos;
-import javafx.geometry.VPos;
 import javafx.scene.Scene;
 import javafx.scene.SnapshotParameters;
 import javafx.scene.canvas.Canvas;
@@ -39,13 +37,10 @@ import robot.Robot;
 import robot.RobotConstants;
 
 import java.awt.*;
-import java.text.DecimalFormat;
 import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.Locale;
 import java.util.function.UnaryOperator;
 
-public class Main extends Application {
+public class Simulator extends Application {
     private final int dim = MapConstants.ARENA_WIDTH;
     private final int scale = ViewConstants.SCALE;
     private final int arenaSize = dim*scale;
@@ -323,18 +318,24 @@ public class Main extends Application {
                     ArcMove arc = (ArcMove) move;
                     radiusY = arc.getRadiusY() * scale;
                     radiusX = arc.getRadiusX() * scale;
-                    turn.setRadiusX(radiusY);
-                    turn.setRadiusY(radiusX);
+
                     turn.setX(move.getX2() * scale);
                     turn.setY(move.getY2() * scale);
-                    turn.setSweepFlag(true);
                     //if (startDir == 90 && endDir == 180) turn.setSweepFlag(true);
                     //if (startDir == 270 && endDir == 0) turn.setSweepFlag(false);
                     //else if (startDir == 0 && endDir == 90) turn.setSweepFlag(false);
                     //else if (startDir == 180 && endDir == 0) turn.setSweepFlag(false);
                     //else if (startDir == 180 && endDir == 270) turn.setSweepFlag(false);
                     //else if (startDir == 90 && endDir == 180) turn.setSweepFlag(false);
-                    if (arc.isTurnLeft()) turn.setSweepFlag(false);
+                    if (arc.isTurnLeft()) {
+                        turn.setSweepFlag(false);
+                        turn.setRadiusX(radiusY);
+                        turn.setRadiusY(radiusX);
+                    } else {
+                        turn.setSweepFlag(true);
+                        turn.setRadiusX(radiusX);
+                        turn.setRadiusY(radiusY);
+                    }
                     startDir = move.getDirInDegrees();
                     path.getElements().add(turn);
                     pathTransition.setPath(path);
