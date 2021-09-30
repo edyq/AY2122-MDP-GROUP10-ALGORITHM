@@ -4,6 +4,7 @@ import map.*;
 import robot.Robot;
 import robot.RobotConstants;
 
+import java.awt.*;
 import java.awt.geom.Line2D;
 import java.util.*;
 import java.util.List;
@@ -86,13 +87,13 @@ public class TripPlannerAlgo {
         for (int i = 0; i < numCells; i++) {
             for (int j = 0; j < numCells; j++) {
                 for (int k = 0; k < 4; k++) {
-                    if (canVisit(grid[j][i][k])) {
+                    //if (canVisit(grid[j][i][k])) {
                         //greedyCostArray[j][i][k] = 0; // if visitable, set the initial cost to 0.
-                        grid[j][i][k].setCost(0, 0);
-                    } else {
+                    //    grid[j][i][k].setCost(0, 0);
+                    //} else {
                         //greedyCostArray[j][i][k] = RobotConstants.MAX_COST; // otherwise, infinite cost.
                         grid[j][i][k].setCost(RobotConstants.MAX_COST, RobotConstants.MAX_COST);
-                    }
+                    //}
                 }
             }
         }
@@ -110,6 +111,7 @@ public class TripPlannerAlgo {
     private boolean canVisit(Node node) {
         return !node.isPicture() && !node.isVirtualObstacle() && !node.isVisited();
     }
+
 
     /**
      * Calculate the number of nodes required to perform a turn.
@@ -265,13 +267,17 @@ public class TripPlannerAlgo {
                 nextDim = forwardLocation[2];
 
                 nextNode = grid[nextY][nextX][nextDim];
-                predMap.put(nextNode, currentNode);
 
                 gCost = currentGCost + greedy(currentNode, nextNode);
-                hCost = heuristic(currentNode, goalNode, endAngleDimension);
+                hCost = heuristic(currentNode, goalNode, endAngleDimension);;
 
-                nextNode.setCost(hCost, gCost); // set the cost for the next node and then add to the priority queue
-                visitQueue.add(nextNode);
+                // if we have already added this node, only change it if the newly found path is better.
+                if (gCost < nextNode.getGCost()) {
+                    //System.out.print("enter");
+                    predMap.put(nextNode, currentNode);
+                    nextNode.setCost(hCost, gCost); // set the cost for the next node and then add to the priority queue
+                    visitQueue.add(nextNode);
+                }
                 //turningArray[nextY][nextX][nextDim] = currentTurnCount; // we can still make a turn, so turning array is max.
             }
             if (backwardLocation != null) {
@@ -280,13 +286,18 @@ public class TripPlannerAlgo {
                 nextDim = backwardLocation[2];
 
                 nextNode = grid[nextY][nextX][nextDim];
-                predMap.put(nextNode, currentNode);
+                //predMap.put(nextNode, currentNode);
 
                 gCost = currentGCost + greedy(currentNode, nextNode);
                 hCost = heuristic(currentNode, goalNode, endAngleDimension);
 
-                nextNode.setCost(hCost, gCost); // set the cost for the next node and then add to the priority queue
-                visitQueue.add(nextNode);
+                //nextNode.setCost(hCost, gCost); // set the cost for the next node and then add to the priority queue
+                //visitQueue.add(nextNode);
+                if (gCost < nextNode.getGCost()) {
+                    predMap.put(nextNode, currentNode);
+                    nextNode.setCost(hCost, gCost); // set the cost for the next node and then add to the priority queue
+                    visitQueue.add(nextNode);
+                }
                 //turningArray[nextY][nextX][nextDim] = currentTurnCount;
             }
             if (leftLocation != null) { // if this is a valid location to search, add it to the queue
@@ -295,13 +306,18 @@ public class TripPlannerAlgo {
                 nextDim = leftLocation[2];
 
                 nextNode = grid[nextY][nextX][nextDim];
-                predMap.put(nextNode, currentNode);
+                //predMap.put(nextNode, currentNode);
 
                 gCost = currentGCost + greedy(currentNode, nextNode);
                 hCost = heuristic(currentNode, goalNode, endAngleDimension);
 
-                nextNode.setCost(hCost, gCost); // set the cost for the next node and then add to the priority queue
-                visitQueue.add(nextNode);
+                //nextNode.setCost(hCost, gCost); // set the cost for the next node and then add to the priority queue
+                //visitQueue.add(nextNode);
+                if (gCost < nextNode.getGCost()) {
+                    predMap.put(nextNode, currentNode);
+                    nextNode.setCost(hCost, gCost); // set the cost for the next node and then add to the priority queue
+                    visitQueue.add(nextNode);
+                }
                 //turningArray[nextY][nextX][nextDim] = 0; // turn has started, set to 0.
                 //if (nextNode == goalNode) continue;
             }
@@ -311,13 +327,18 @@ public class TripPlannerAlgo {
                 nextDim = rightLocation[2];
 
                 nextNode = grid[nextY][nextX][nextDim];
-                predMap.put(nextNode, currentNode);
+                //predMap.put(nextNode, currentNode);
 
                 gCost = currentGCost + greedy(currentNode, nextNode);
                 hCost = heuristic(currentNode, goalNode, endAngleDimension);
 
-                nextNode.setCost(hCost, gCost); // set the cost for the next node and then add to the priority queue
-                visitQueue.add(nextNode);
+                //nextNode.setCost(hCost, gCost); // set the cost for the next node and then add to the priority queue
+                //visitQueue.add(nextNode);
+                if (gCost < nextNode.getGCost()) {
+                    predMap.put(nextNode, currentNode);
+                    nextNode.setCost(hCost, gCost); // set the cost for the next node and then add to the priority queue
+                    visitQueue.add(nextNode);
+                }
             }
             currentNode.setHasBeenVisited(true);
         }
@@ -477,13 +498,33 @@ public class TripPlannerAlgo {
      */
     private double greedy(Node n1, Node n2) {
         int turnCost = 0;
+        int cost = RobotConstants.MOVE_COST;
 
         // check to see if turning is required to get to that direction (not in the same angle dimension)
         if (n1.getDim() != n2.getDim()) { // TODO: if we are allowing 180 degree turns, must change this to be a variable turn cost.
             turnCost = RobotConstants.TURN_COST_90;
+        } else {
+            switch(n1.getDim()) {
+                case 0:
+                    if (n1.getX() > n2.getX())
+                        cost = RobotConstants.REVERSE_COST;
+                    break;
+                case 1:
+                    if (n1.getY() > n2.getY())
+                        cost = RobotConstants.REVERSE_COST;
+                    break;
+                case 2:
+                    if (n1.getX() < n2.getX())
+                        cost = RobotConstants.REVERSE_COST;
+                    break;
+                case 3:
+                    if (n1.getY() < n2.getY())
+                        cost = RobotConstants.REVERSE_COST;
+                    break;
+            }
         }
         // return the sum of the cost to move 1 node + the cost to turn (if turning is done)
-        return RobotConstants.MOVE_COST + turnCost;
+        return cost + turnCost;
     }
 
     /**
@@ -678,16 +719,17 @@ public class TripPlannerAlgo {
         for (int i = 0; i < numCells; i++) {
             for (int j = 0; j < numCells; j++) {
                 for (int k = 0; k < 4; k++) {
-                    if (canVisit(grid[j][i][k])) {
+                    //if (canVisit(grid[j][i][k])) {
                         //greedyCostArray[j][i][k] = 0; // if visitable, set the initial cost to 0.
-                        grid[j][i][k].setCost(0, 0);
-                    } else {
+                        //grid[j][i][k].setCost(0, 0);
+                   // } else {
                         //greedyCostArray[j][i][k] = RobotConstants.MAX_COST; // otherwise, infinite cost.
                         grid[j][i][k].setCost(RobotConstants.MAX_COST, RobotConstants.MAX_COST);
-                    }
+                    //}
                 }
             }
         }
+        grid[endPosition[1]][endPosition[0]][endPosition[2]/90].setCost(0,0);
     }
 
     private int angleToDimension(int angle) {
