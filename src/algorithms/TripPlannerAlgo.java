@@ -14,7 +14,7 @@ import java.util.List;
  */
 public class TripPlannerAlgo {
     private final Arena arena;
-    private final int numCells = MapConstants.ARENA_WIDTH / MapConstants.OBSTACLE_WIDTH;
+    private final int numCells = (MapConstants.ARENA_WIDTH / MapConstants.OBSTACLE_WIDTH)+MapConstants.ARENA_BORDER_SIZE*2;
     private Node[][][] grid; // grid dimensions: x,y,direction (of which there are 4: 0=east,1=north,2=west,3=south)
     //private int[][][] turningArray; // array to keep track of whether turns are possible at this position
     private final Map<Node, Node> predMap;
@@ -82,7 +82,7 @@ public class TripPlannerAlgo {
         //this.currentNode = grid[startY][startX][angleDimension];
 
         // initialize the arrays
-        int numCells = MapConstants.ARENA_WIDTH / MapConstants.OBSTACLE_WIDTH;
+        int numCells = (MapConstants.ARENA_WIDTH / MapConstants.OBSTACLE_WIDTH) + MapConstants.ARENA_BORDER_SIZE*2;
         //this.greedyCostArray = new double[numCells][numCells][4];
         for (int i = 0; i < numCells; i++) {
             for (int j = 0; j < numCells; j++) {
@@ -714,7 +714,7 @@ public class TripPlannerAlgo {
         }
 
         // initialize the arrays
-        int numCells = MapConstants.ARENA_WIDTH / MapConstants.OBSTACLE_WIDTH;
+        int numCells = (MapConstants.ARENA_WIDTH / MapConstants.OBSTACLE_WIDTH) + MapConstants.ARENA_BORDER_SIZE*2;
 
         for (int i = 0; i < numCells; i++) {
             for (int j = 0; j < numCells; j++) {
@@ -761,9 +761,10 @@ public class TripPlannerAlgo {
     }
 
     public void printPath(List<Node> path) {
-        char[][] printArray = new char[20][20];
-        for (int y = 0; y < 20; y++) {
-            for (int x = 0; x < 20; x++) {
+
+        char[][] printArray = new char[numCells][numCells];
+        for (int y = 0; y < numCells; y++) {
+            for (int x = 0; x < numCells; x++) {
                 if (grid[y][x][0].isPicture()) printArray[y][x] = 'E';
                 else if (grid[y][x][1].isPicture()) printArray[y][x] = 'N';
                 else if (grid[y][x][2].isPicture()) printArray[y][x] = 'W';
@@ -796,8 +797,8 @@ public class TripPlannerAlgo {
         }
         printArray[path.get(0).getY()][path.get(0).getX()] = 'R';
 
-        for (int y = 0; y < 20; y++) {
-            for (int x = 0; x < 20; x++) {
+        for (int y = 0; y < numCells; y++) {
+            for (int x = 0; x < numCells; x++) {
                 System.out.print(printArray[y][x] + "  ");
             }
             System.out.println();

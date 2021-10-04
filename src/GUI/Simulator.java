@@ -41,7 +41,7 @@ public class Simulator extends Application {
     private final int dim = MapConstants.ARENA_WIDTH;
     private final int scale = ViewConstants.SCALE;
     private final int arenaSize = dim*scale;
-    private final int gridSize = arenaSize/(MapConstants.ARENA_WIDTH/MapConstants.OBSTACLE_WIDTH);
+    private final int gridSize = arenaSize/((MapConstants.ARENA_WIDTH/MapConstants.OBSTACLE_WIDTH)+MapConstants.ARENA_BORDER_SIZE*2);
     private ArrayList<Obstacle> obsList= new ArrayList<>();
 
     private Timeline timeline;
@@ -69,7 +69,7 @@ public class Simulator extends Application {
         arenaPane.setMinHeight(arenaSize);
         arenaPane.setBackground(new Background(new BackgroundFill(drawGridLines(), new CornerRadii(0), null)));
         // draw starting position
-        Rectangle start = new Rectangle (0, 17*gridSize,3*gridSize, 3*gridSize);
+        Rectangle start = new Rectangle (1, 17*gridSize,3*gridSize, 3*gridSize);
         start.setFill(Color.GRAY);
         arenaPane.getChildren().add(start);
         // draw robot

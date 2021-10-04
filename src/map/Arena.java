@@ -29,8 +29,8 @@ public class Arena extends JPanel {
     }
 
     public boolean addPictureObstacle(int x, int y, MapConstants.IMAGE_DIRECTION imageDirection) {
-        int numGrids = MapConstants.ARENA_WIDTH/MapConstants.OBSTACLE_WIDTH;
-        PictureObstacle obstacle = new PictureObstacle(x, y, imageDirection);
+        int numGrids = (MapConstants.ARENA_WIDTH/MapConstants.OBSTACLE_WIDTH)+MapConstants.ARENA_BORDER_SIZE*2;
+        PictureObstacle obstacle = new PictureObstacle(x+MapConstants.ARENA_BORDER_SIZE, y+MapConstants.ARENA_BORDER_SIZE, imageDirection);
         if (x<0 || x>=numGrids || y<0 || y>=numGrids) {
             System.out.println("Position is out of bounds");
             return false;

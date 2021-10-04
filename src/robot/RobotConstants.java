@@ -1,10 +1,12 @@
 package robot;
 
+import map.MapConstants;
+
 import java.awt.*;
 
 public class RobotConstants {
     public static final int ROBOT_VIRTUAL_WIDTH = 30;
-    public static final Point ROBOT_INITIAL_CENTER_COORDINATES = new Point(1, 18);
+    public static final Point ROBOT_INITIAL_CENTER_COORDINATES = new Point(1+ MapConstants.ARENA_BORDER_SIZE, 18+ MapConstants.ARENA_BORDER_SIZE);
     //
     public static final int MOVE_COST = 10;
     public static final int REVERSE_COST = 10;

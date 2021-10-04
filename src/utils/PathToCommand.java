@@ -177,7 +177,7 @@ public class PathToCommand {
         String pathString = ":AND:PATH,";
         //PATH|x,y,0-270|
         for (Node n : path) {
-            pathString += "|" + n.getX() + "," + n.getY() + "," + n.getDim()*90;
+            pathString += "|" + (n.getX()-MapConstants.ARENA_BORDER_SIZE) + "," + (n.getY()-MapConstants.ARENA_BORDER_SIZE) + "," + n.getDim()*90;
         }
         comm.sendMsg(pathString);
         //System.out.println(pathString);
