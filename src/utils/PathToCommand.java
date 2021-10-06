@@ -145,6 +145,7 @@ public class PathToCommand {
         return commandsToSend.substring(0,commandsToSend.length()-1);
     }
 
+    // send to robot the completed list of paths.
     private static void sendToRobot(String cmd) {
         comm.sendMsg(cmd);
         String receiveMsg = null;
@@ -160,6 +161,8 @@ public class PathToCommand {
         //}
         //System.out.println(receiveMsg);
         //receiveMsg = null;
+
+        // buffer so we can space commands
         try {
             Thread.sleep(500);//time is in ms (1000 ms = 1 second)
         } catch (InterruptedException e) {e.printStackTrace();}
@@ -169,6 +172,10 @@ public class PathToCommand {
         }
 
         System.out.println("Message: " + receiveMsg + "\n");
+        // TODO: Testing this
+        try {
+            Thread.sleep(500);//time is in ms (1000 ms = 1 second)
+        } catch (InterruptedException e) {e.printStackTrace();}
     }
 
     private static void sendImageToAndroid(int obstacleID, String image) {
