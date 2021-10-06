@@ -221,7 +221,7 @@ public class Simulator extends Application {
         for (int i : fastestPath) {
             n = pictureList.get(i);
             text += "<" + n.getX() + ", " + n.getY() + ">, ";
-            moveList.add(algo.planPath(startCoords[0], startCoords[1], startCoords[2], n.getX(), n.getY(), n.getImadeDirectionAngle(), true, true));
+            moveList.add(algo.planPath(startCoords[0], startCoords[1], startCoords[2], n.getX(), n.getY(), n.getImadeDirectionAngle(), true,true, true));
             startCoords = algo.getEndPosition();//algo.getReverseCoordinates(n);
         }
 

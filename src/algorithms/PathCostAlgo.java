@@ -19,7 +19,7 @@ public class PathCostAlgo {
         algo.constructMap();
         for (int i : path) {
             next = list.get(i);
-            algo.planPath(startX, startY, startAngle, next.getX(), next.getY(), next.getImadeDirectionAngle(),false, false);
+            algo.planPath(startX, startY, startAngle, next.getX(), next.getY(), next.getImadeDirectionAngle(),true,false, false);
             // do the reverse before finding the next path
             int[] coords = algo.getEndPosition();
             //bot.setCenterCoordinate(new Point(coords[0], coords[1]));

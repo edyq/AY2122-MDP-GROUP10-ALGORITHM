@@ -74,7 +74,7 @@ public class TripPlannerAlgo {
         return endPosition;
     }
 
-    private void clear(int startX, int startY, int startAngle) {
+    public void clear() {
         predMap.clear();
         constructMap();
         //int angleDimension = angleToDimension(startAngle);
@@ -202,20 +202,31 @@ public class TripPlannerAlgo {
      * <p>
      * input: the x,y, and direction of the picture obstacle, the robot's turn radius
      */
-    public ArrayList<MoveType> planPath(int startX, int startY, int startAngle, int pictureX, int pictureY, int pictureDirInDegrees, boolean doBacktrack, boolean print) {
+    public ArrayList<MoveType> planPath(int startX, int startY, int startAngle, int pictureX, int pictureY, int pictureDirInDegrees, boolean isPicturePos, boolean doBacktrack, boolean print) {
         if (0 > startX || startX >= numCells || 0 > startY || startY >= numCells) { // start is outside of bounds
             this.totalCost += 9999;
             return null;
         }
         //System.out.println(startX + ", " + startY + ", " + startAngle);
-        clear(startX, startY, startAngle);
-        int[] goal = getGoalNodePosition(pictureX, pictureY, pictureDirInDegrees);
-        int endX = goal[0];
-        int endY = goal[1];
+        clear();
+        int endX, endY, endAngleDimension;
         ArrayList<MoveType> path = null;
-        int endDirInDegrees = goal[2];
-        boolean goalFound = false;                                  // false since goal node has not yet been found
-        int endAngleDimension = angleToDimension(endDirInDegrees);  // which dimension of the 3d array does the goal node lie in
+        boolean goalFound = false;
+        if (isPicturePos) {
+            int[] goal = getGoalNodePosition(pictureX, pictureY, pictureDirInDegrees);
+            endX = goal[0];
+            endY = goal[1];
+            int endDirInDegrees = goal[2];             // false since goal node has not yet been found
+            endAngleDimension = angleToDimension(endDirInDegrees);  // which dimension of the 3d array does the goal node lie in
+        } else {
+            endX = pictureX;
+            endY = pictureY;
+            endAngleDimension = angleToDimension(pictureDirInDegrees);
+        }
+
+        // test if goal node s reachable
+        if (!isValidLocation(endX, endY, endAngleDimension)) return null;
+
         Node goalNode = grid[endY][endX][endAngleDimension];        // fetch the goal node from the grid array.
         int maxTurnCountX = calculateTurnSizeX();            // get the number of grids that the car needs to move straight after changing directions (for a legal turn)
         int maxTurnCountY = calculateTurnSizeY();
@@ -802,6 +813,41 @@ public class TripPlannerAlgo {
                 System.out.print(printArray[y][x] + "  ");
             }
             System.out.println();
+        }
+    }
+
+    // code to do a reverse motion if possible.
+    public int[] getReversePos(int x, int y, int dim) {
+        int[] pair;
+        switch (dim) {
+            case 0: // east, x+1,y
+                pair = new int[]{x - 1, y, dim};
+                break;
+            case 1: // north, x,y-1
+                pair = new int[]{x, y + 1, dim};
+                break;
+            case 2: // west, x-1,y
+                pair = new int[]{x + 1, y, dim};
+                break;
+            case 3: // south, x,y-1
+                pair = new int[]{x, y - 1, dim};
+                break;
+            default: // error
+                pair = null;
+                break;
+        }
+        if (pair != null && canGo(pair[0], pair[1], dim)) return pair;
+        else return null;
+    }
+
+
+    // just check if the node is not a virtual obstacle or a picture obstacle.
+    private boolean canGo(int x, int y, int dim) {
+        if (x >= 0 && x < numCells && y >= 0 && y < numCells) {
+            Node n = grid[y][x][dim];
+            return !n.isPicture() && !n.isVirtualObstacle();
+        } else {
+            return false;
         }
     }
 }

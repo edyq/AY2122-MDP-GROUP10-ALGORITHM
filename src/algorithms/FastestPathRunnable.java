@@ -26,7 +26,8 @@ public class FastestPathRunnable implements Runnable {
         }
         catch (Exception e) {
             // Throwing an exception
-            System.out.println("Exception is caught");
+            e.printStackTrace();
+            //System.out.println("Exception is caught");
         }
     }
 

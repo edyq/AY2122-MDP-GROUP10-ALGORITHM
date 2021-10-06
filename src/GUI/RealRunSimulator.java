@@ -1,9 +1,6 @@
 package GUI;
 
-import algorithms.ArcMove;
-import algorithms.FastestPathAlgo;
-import algorithms.MoveType;
-import algorithms.TripPlannerAlgo;
+import algorithms.*;
 import javafx.animation.*;
 import javafx.application.Application;
 import javafx.collections.FXCollections;
@@ -35,6 +32,7 @@ import map.MapConstants.IMAGE_DIRECTION;
 import map.PictureObstacle;
 import robot.Robot;
 import robot.RobotConstants;
+import utils.CommMgr;
 
 import java.awt.*;
 import java.util.ArrayList;
@@ -52,8 +50,10 @@ public class RealRunSimulator extends Application {
     private static int index = 0;
 
     private static Robot bot;
-    private static FastestPathAlgo fast;
+    private static FastestPathAlgoTest fast;
     private static TripPlannerAlgo algo;
+
+    static CommMgr comm;
 
     private static ArrayList<PathTransition> pathTList;
 
@@ -61,13 +61,10 @@ public class RealRunSimulator extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception{
-        //Parent root = FXMLLoader.load(getClass().getResource("sample.fxml"));
-        // arena section
-        // graphics context
         bot = new Robot(RobotConstants.ROBOT_INITIAL_CENTER_COORDINATES, RobotConstants.ROBOT_DIRECTION.NORTH, false);
-        //bot = new Robot(new Point(5,15), RobotConstants.ROBOT_DIRECTION.EAST, false);
         arena = new Arena(bot);
-        fast = new FastestPathAlgo(arena);
+        comm = CommMgr.getCommMgr();
+        fast = new FastestPathAlgoTest(arena);
         algo = new TripPlannerAlgo(arena);
 
         Pane arenaPane = new Pane();
@@ -75,11 +72,10 @@ public class RealRunSimulator extends Application {
         arenaPane.setMinHeight(arenaSize);
         arenaPane.setBackground(new Background(new BackgroundFill(drawGridLines(), new CornerRadii(0), null)));
         // draw starting position
-        Rectangle start = new Rectangle (0, 17*gridSize,3*gridSize, 3*gridSize);
+        Rectangle start = new Rectangle (0, 16*gridSize,4*gridSize, 4*gridSize);
         start.setFill(Color.GRAY);
         arenaPane.getChildren().add(start);
         // draw robot
-        //int robotXPos =
         Rectangle robot = new Rectangle(0,0,23*scale, 20*scale);
         Point robotCoords= RobotConstants.ROBOT_INITIAL_CENTER_COORDINATES;
         robot.setX(robotCoords.getX()*gridSize-robot.getWidth()/4);
@@ -88,65 +84,30 @@ public class RealRunSimulator extends Application {
         Stop[] stops = new Stop[] { new Stop(0, Color.BLACK), new Stop(1, Color.RED)};
         LinearGradient lg1 = new LinearGradient(0.7, 0, 1, 0, true, CycleMethod.NO_CYCLE, stops);
         robot.setFill(lg1);
-        //robot.setFill(ViewConstants.ROBOT_COLOR);
         robot.setStrokeWidth(20);
         robot.setRotate(-90);
-        //robot.setX()
         arenaPane.getChildren().addAll(robot);
-        //arenaPane.getChildren().addAll(animateRobot());
-        //animateRobot(robot);
-
-        /*
-        addObstacle(arenaPane,0,10,IMAGE_DIRECTION.SOUTH);
-        addObstacle(arenaPane,3,3,IMAGE_DIRECTION.EAST);
-        addObstacle(arenaPane,4,4,IMAGE_DIRECTION.NORTH);
-        addObstacle(arenaPane,5,5,IMAGE_DIRECTION.WEST);
-         */
 
         // shortest path label
         Label shortestPathLabel = new Label("Shortest path: ");
         Label timerLabel = new Label("Time: ");
-
-        // input fields
-        Label xLabel = new Label("X Pos:");
-        Label yLabel = new Label("Y Pos:");
-        Label dirLabel = new Label("Direction:");
-
-        TextField xField = new TextField();
-        TextField yField = new TextField();
-
-        UnaryOperator<TextFormatter.Change> integerFilter = change -> {
-            String newText = change.getControlNewText();
-            if (newText.matches("-?([0-9][0-9]*)?")) {
-                return change;
-            }
-            return null;
-        };
-
-        xField.setTextFormatter(new TextFormatter<Integer>(new IntegerStringConverter(), 0, integerFilter));
-        yField.setTextFormatter(new TextFormatter<Integer>(new IntegerStringConverter(), 0, integerFilter));
-
-
-        ObservableList<String> options = FXCollections.observableArrayList(
-                "North","South","East","West");
-        ComboBox directionBox = new ComboBox(options);
-        directionBox.getSelectionModel().selectFirst();
+        Label statusLabel = new Label("Idle");
 
         // buttons
-        Button obstacleButton = new Button("Add Obstacle");
+        Button obstacleButton = new Button("Connect to RPi");
         EventHandler<ActionEvent> addObstacle = new EventHandler<ActionEvent>() {
             public void handle(ActionEvent e)
             {
-                String dir = (String) directionBox.getValue();
-                System.out.println(Integer.parseInt(xField.getText()));
-                addObstacle(arenaPane, Integer.parseInt(xField.getText()), Integer.parseInt(yField.getText()), IMAGE_DIRECTION.valueOf(dir.toUpperCase()));
+                statusLabel.setText("Connecting to RPi...");
+                comm.connectToRPi();
+                statusLabel.setText("Waiting for obstacle list...");
+                recvObstacles();
             }
         };
-        //obstacleButton.setOnAction(addObstacle);
+        obstacleButton.setOnAction(addObstacle);
 
 
         Button simulateButton = new Button("Run Simulation");
-        /**
         EventHandler<ActionEvent> runSimulation = new EventHandler<ActionEvent>() {
             public void handle(ActionEvent e)
             {
@@ -177,19 +138,12 @@ public class RealRunSimulator extends Application {
                 runSimulation(shortestPathLabel, robot, timeline);
             }
         };
-         */
 
-        //simulateButton.setOnAction(runSimulation);
+        simulateButton.setOnAction(runSimulation);
 
 
         GridPane buttonBar = new GridPane();
         buttonBar.setAlignment(Pos.CENTER);
-        buttonBar.add(xLabel, 0,0);
-        buttonBar.add(yLabel,1,0);
-        buttonBar.add(dirLabel,2,0);
-        buttonBar.add(xField,0,1);
-        buttonBar.add(yField,1,1);
-        buttonBar.add(directionBox, 2,1);
         buttonBar.add(obstacleButton, 0,2,3,1);
         buttonBar.add(simulateButton,3,2,3,1);
         obstacleButton.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
@@ -200,8 +154,12 @@ public class RealRunSimulator extends Application {
         buttonBar.setMinWidth(arenaSize);
         buttonBar.setMinHeight(100);
 
+        //simulateButton.setOnAction(runSimulation);
+
+
+
         // place arena and control panel into vertical box
-        VBox vbox = new VBox(arenaPane, shortestPathLabel, timerLabel, buttonBar);
+        VBox vbox = new VBox(arenaPane, shortestPathLabel, timerLabel, statusLabel, buttonBar);
 
         // pack everything into the stage
         primaryStage.setTitle("Simulator");
@@ -209,6 +167,26 @@ public class RealRunSimulator extends Application {
         primaryStage.setResizable(false);
         primaryStage.show();
 
+        //comm.connectToRPi();
+        //recvObstacles();
+        //int[] path = fast.planFastestPath();
+    }
+
+    private static void recvObstacles() {
+        String receiveMsg = null;
+        System.out.println("Waiting to receive obstacle list...");
+        while (receiveMsg == null || !receiveMsg.startsWith("POS")) {
+            receiveMsg = comm.recieveMsg();
+        }
+        System.out.println("Received Obstacles String: " + receiveMsg + "\n");
+
+        // "POS|3,4,N|4,5,E|5,6,S|9,4,N|9,10,E"
+        String[] positions = receiveMsg.split("\\|");
+
+        for (int i = 1; i < positions.length; i++) {
+            String[] obs = positions[i].split(",");
+            arena.addPictureObstacle(Integer.parseInt(obs[0]), Integer.parseInt(obs[1]), MapConstants.IMAGE_DIRECTION.getImageDirection(obs[2]));
+        }
     }
 
     public void runSimulation(Label label, Rectangle robot, Timeline timeline) {
@@ -229,7 +207,7 @@ public class RealRunSimulator extends Application {
         for (int i : fastestPath) {
             n = pictureList.get(i);
             text += "<" + n.getX() + ", " + n.getY() + ">, ";
-            moveList.add(algo.planPath(startCoords[0], startCoords[1], startCoords[2], n.getX(), n.getY(), n.getImadeDirectionAngle(), true, true));
+            moveList.add(algo.planPath(startCoords[0], startCoords[1], startCoords[2], n.getX(), n.getY(), n.getImadeDirectionAngle(), true,true, true));
             startCoords = algo.getEndPosition();//algo.getReverseCoordinates(n);
         }
 
@@ -368,12 +346,9 @@ public class RealRunSimulator extends Application {
     }
 
     private void addObstacle(Pane arenaPane, int x, int y, IMAGE_DIRECTION dir) {
-        boolean success = arena.addPictureObstacle(x,y,dir);
-        if (success) {
-            Obstacle obs = new Obstacle(x, y, dir);
-            obs.addToPane(arenaPane);
-            obsList.add(obs);
-        }
+        Obstacle obs = new Obstacle(x, y, dir);
+        obs.addToPane(arenaPane);
+        obsList.add(obs);
     }
 
     private class Obstacle {

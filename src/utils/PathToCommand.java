@@ -1,5 +1,6 @@
 package utils;
 
+import GUI.RealRunSimulator;
 import algorithms.*;
 import map.Arena;
 import map.MapConstants;
@@ -21,42 +22,36 @@ public class PathToCommand {
     static CommMgr comm = CommMgr.getCommMgr();
 
     static FastestPathAlgoTest fast = new FastestPathAlgoTest(arena);
-    static GreedyFastestPathAlgo greedy = new GreedyFastestPathAlgo(arena);
+    //static GreedyFastestPathAlgo greedy = new GreedyFastestPathAlgo(arena);
     static TripPlannerAlgo algo = new TripPlannerAlgo(arena);
 
 
     public static void main(String[] args) {
 
-        //arena.addPictureObstacle(5 , 0, MapConstants.IMAGE_DIRECTION.SOUTH);
-        //arena.addPictureObstacle(16, 3, MapConstants.IMAGE_DIRECTION.WEST);
-        //arena.addPictureObstacle(9, 12, MapConstants.IMAGE_DIRECTION.WEST);
-        //arena.addPictureObstacle(18, 8, MapConstants.IMAGE_DIRECTION.SOUTH);
+        /*
+        // add impossible node
+        arena.addPictureObstacle(0,0,MapConstants.IMAGE_DIRECTION.NORTH);
+
+        arena.addPictureObstacle(5 , 0, MapConstants.IMAGE_DIRECTION.SOUTH);
+        arena.addPictureObstacle(16, 3, MapConstants.IMAGE_DIRECTION.WEST);
+        arena.addPictureObstacle(9, 12, MapConstants.IMAGE_DIRECTION.WEST);
+        arena.addPictureObstacle(18, 8, MapConstants.IMAGE_DIRECTION.SOUTH);
         //arena.addPictureObstacle(8, 19, MapConstants.IMAGE_DIRECTION.EAST);
         //arena.addPictureObstacle(19, 15, MapConstants.IMAGE_DIRECTION.WEST);
         //arena.addPictureObstacle(2, 7, MapConstants.IMAGE_DIRECTION.EAST);
         //arena.addPictureObstacle(1, 6,MapConstants.IMAGE_DIRECTION.SOUTH);
-
-
         //arena.addPictureObstacle(19, 15, MapConstants.IMAGE_DIRECTION.WEST);
-
-
-        //TARGET,obstalceNum,TARGETid
+        */
 
         comm.connectToRPi();
+
         // receive obstacles from android
         recvObstacles();
         int[] path = fast.planFastestPath();
-        //for (int i: path) {
-        //    System.out.print(i + ", ");
-        //}
 
-        //int[] path2 = greedy.planFastestPath();
-        //for (int i: path2) {
-        //    System.out.print(i + ", ");
-        //}
-        //sendPathToAndroid();
+        sendPathToAndroid();
         doThePath(path);
-
+        System.out.println("No more possible nodes to visit. Pathing finished");
         comm.endConnection();
     }
 
@@ -74,7 +69,7 @@ public class PathToCommand {
             next = map.get(i);
             System.out.println("---------------Path " + count + "---------------");
             System.out.println(next.getX() + ", " + next.getY());
-            arrayList = algo.planPath(startX, startY, startAngle, next.getX(), next.getY(), next.getImadeDirectionAngle(), true, true);
+            arrayList = algo.planPath(startX, startY, startAngle, next.getX(), next.getY(), next.getImadeDirectionAngle(),true, true, true);
             if (arrayList != null) {// if there is a path
                 sendMovesToRobot(arrayList, i);
                 int[] coords = algo.getEndPosition();
@@ -89,13 +84,40 @@ public class PathToCommand {
     }
 
     private static void sendMovesToRobot(ArrayList<MoveType> moveList, int i) {
-        String formatted;
-        String msg;
-        INSTRUCTION_TYPE instructionType;
+        int tryCount = 2;
+        ArrayList<MoveType> backwardMoveList;
+        int[] coords;
 
-        //sendToRobot(":STM:0008");
+        int[] backwardCoords;
 
+        String commandsToSend = encodeMoves(moveList);
+
+        sendToRobot(commandsToSend);
+        String str = takeImage();
+        // retry if image taken is null
+        while (str == "null" && tryCount > 0) {
+            tryCount--;
+            // try to go backwards by 1.
+            coords = algo.getEndPosition();
+            backwardCoords = algo.getReversePos(coords[0], coords[1], coords[2]/90);
+            if (backwardCoords == null) break; // if no backwards position available, just break.
+            System.out.println("Reversing to retake picture...");
+            backwardMoveList = algo.planPath(coords[0], coords[1], coords[2], backwardCoords[0], backwardCoords[1], backwardCoords[2]*90, false,true, true);
+            if (backwardMoveList != null) { // if we can't reverse, just break from the loop.
+                commandsToSend = encodeMoves(backwardMoveList);
+                sendToRobot(commandsToSend);
+                str = takeImage();
+            } else {
+                break;
+            }
+        }
+        sendImageToAndroid(i, str);
+    }
+
+    private static String encodeMoves(ArrayList<MoveType> moveList) {
         String commandsToSend = ":STM:0008,";
+        INSTRUCTION_TYPE instructionType;
+        String formatted;
 
         for (MoveType move : moveList) {
             int measure = 0;
@@ -119,13 +141,8 @@ public class PathToCommand {
                 //msg = ":STM:090" + INSTRUCTION_TYPE.encode(instructionType);
                 commandsToSend += "090" + INSTRUCTION_TYPE.encode(instructionType) + ",";
             }
-            //sendToRobot(msg);
-            //if (!move.isLine()) sendToRobot(":STM:0008");
         }
-
-        sendToRobot(commandsToSend.substring(0,commandsToSend.length()-1));
-        String str = takeImage();
-        sendImageToAndroid(i, str);
+        return commandsToSend.substring(0,commandsToSend.length()-1);
     }
 
     private static void sendToRobot(String cmd) {
@@ -180,7 +197,6 @@ public class PathToCommand {
             pathString += "|" + (n.getX()-MapConstants.ARENA_BORDER_SIZE) + "," + (n.getY()-MapConstants.ARENA_BORDER_SIZE) + "," + n.getDim()*90;
         }
         comm.sendMsg(pathString);
-        //System.out.println(pathString);
     }
 
     private static void recvObstacles() {

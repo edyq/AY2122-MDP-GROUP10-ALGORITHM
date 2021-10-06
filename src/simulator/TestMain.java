@@ -75,7 +75,7 @@ public class TestMain {
             next = map.get(i);
             System.out.println("---------------Path " + count + "---------------");
             System.out.println(next.getX() + ", " + next.getY());
-            algo.planPath(startX, startY, startAngle, next.getX(), next.getY(), next.getImadeDirectionAngle(), true, true);
+            algo.planPath(startX, startY, startAngle, next.getX(), next.getY(), next.getImadeDirectionAngle(), true,true, true);
             /*
             int x = next.getX();
             int y = next.getY();
