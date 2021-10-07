@@ -77,7 +77,7 @@ public class PathToCommand {
     }
 
     private static void sendMovesToRobot(ArrayList<MoveType> moveList, int i) {
-        int tryCount = 2;
+        int tryCount = 4;
         ArrayList<MoveType> backwardMoveList;
         int[] coords;
 
@@ -88,7 +88,7 @@ public class PathToCommand {
         sendToRobot(commandsToSend);
         String str = takeImage();
         // retry if image taken is null
-        while (str.equals("null") && tryCount > 0) {
+        while ((str.equals("null") || str.equals("bulls")) && tryCount > 0) {
             tryCount--;
             // try to go backwards by 1.
             coords = algo.getEndPosition();

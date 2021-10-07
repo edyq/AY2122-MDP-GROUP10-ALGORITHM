@@ -13,9 +13,9 @@ public class RobotConstants {
     public static final int TURN_COST_90 = 60;
     public static final int MAX_COST = Integer.MAX_VALUE;
     //public static final double TURN_RADIUS = 21;
-    public static final double LEFT_TURN_RADIUS_Y = 13; //17;
+    public static final double LEFT_TURN_RADIUS_Y = 15; //17;
     public static final double LEFT_TURN_RADIUS_X = 28; //28;
-    public static final double RIGHT_TURN_RADIUS_Y = 13; //17;
+    public static final double RIGHT_TURN_RADIUS_Y = 15; //17;
     public static final double RIGHT_TURN_RADIUS_X = 28; //28;
     public static final double MOVE_SPEED = 21; // in cm per second
     public static final double STRAIGHT_LINE_MULTIPLIER = 1.1;
