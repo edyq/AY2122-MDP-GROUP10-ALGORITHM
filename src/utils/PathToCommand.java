@@ -43,7 +43,6 @@ public class PathToCommand {
         recvObstacles();
         int[] path = fast.planFastestPath();
 
-        sendPathToAndroid();
         doThePath(path);
         System.out.println("No more possible nodes to visit. Pathing finished");
         comm.endConnection();
