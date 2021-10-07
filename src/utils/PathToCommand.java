@@ -51,7 +51,7 @@ public class PathToCommand {
 
     private static void doThePath(int[] path) {
         algo.constructMap();
-        ArrayList<PictureObstacle> map = arena.getObstacles();
+        ArrayList<PictureObstacle> map = Arena.getObstacles();
         Robot r = arena.getRobot();
         int startX = r.getX();
         int startY = r.getY();
@@ -89,7 +89,7 @@ public class PathToCommand {
         sendToRobot(commandsToSend);
         String str = takeImage();
         // retry if image taken is null
-        while (str == "null" && tryCount > 0) {
+        while (str.equals("null") && tryCount > 0) {
             tryCount--;
             // try to go backwards by 1.
             coords = algo.getEndPosition();
