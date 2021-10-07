@@ -1,6 +1,5 @@
 package utils;
 
-import GUI.RealRunSimulator;
 import algorithms.*;
 import map.Arena;
 import map.MapConstants;
@@ -9,12 +8,7 @@ import map.PictureObstacle;
 import robot.Robot;
 import robot.RobotConstants;
 import utils.CommConstants.INSTRUCTION_TYPE;
-
-import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
-import java.util.Timer;
-import java.util.concurrent.TimeUnit;
 
 public class PathToCommand {
     static Robot bot = new Robot(RobotConstants.ROBOT_INITIAL_CENTER_COORDINATES, RobotConstants.ROBOT_DIRECTION.NORTH, false);
@@ -181,8 +175,10 @@ public class PathToCommand {
     private static void sendImageToAndroid(int obstacleID, String image) {
         String msg;
         msg = ":AND:TARGET," + (obstacleID+1) + "," + image;
-
         comm.sendMsg(msg);
+        try { // try to wait
+            Thread.sleep(500);//time is in ms (1000 ms = 1 second)
+        } catch (InterruptedException e) {e.printStackTrace();}
     }
 
     private static String takeImage() {
