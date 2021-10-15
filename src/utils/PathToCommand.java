@@ -15,7 +15,7 @@ public class PathToCommand {
     static Arena arena = new Arena(bot);
     static CommMgr comm = CommMgr.getCommMgr();
 
-    static FastestPathAlgoTest fast = new FastestPathAlgoTest(arena);
+    static FastestPathAlgo fast = new FastestPathAlgo(arena);
     //static GreedyFastestPathAlgo greedy = new GreedyFastestPathAlgo(arena);
     static TripPlannerAlgo algo = new TripPlannerAlgo(arena);
 

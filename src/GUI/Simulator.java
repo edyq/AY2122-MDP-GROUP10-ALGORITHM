@@ -48,7 +48,7 @@ public class Simulator extends Application {
     private double timeSeconds = 0;
 
     private static Robot bot;
-    private static FastestPathAlgoTest fast;
+    private static FastestPathAlgo fast;
     private static TripPlannerAlgo algo;
 
     private static Arena arena = null;
@@ -61,7 +61,7 @@ public class Simulator extends Application {
         bot = new Robot(RobotConstants.ROBOT_INITIAL_CENTER_COORDINATES, RobotConstants.ROBOT_DIRECTION.NORTH, false);
         //bot = new Robot(new Point(5,15), RobotConstants.ROBOT_DIRECTION.EAST, false);
         arena = new Arena(bot);
-        fast = new FastestPathAlgoTest(arena);
+        fast = new FastestPathAlgo(arena);
         algo = new TripPlannerAlgo(arena);
 
         Pane arenaPane = new Pane();
