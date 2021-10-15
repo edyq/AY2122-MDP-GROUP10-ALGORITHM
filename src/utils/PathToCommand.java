@@ -20,6 +20,10 @@ public class PathToCommand {
     static TripPlannerAlgo algo = new TripPlannerAlgo(arena);
 
 
+    /**
+     * main module to start the algo and establish communication with rpi
+     * @param args
+     */
     public static void main(String[] args) {
         comm.connectToRPi();
 
@@ -32,6 +36,10 @@ public class PathToCommand {
         comm.endConnection();
     }
 
+    /**
+     * receive obstacle info from android, plan path, and send instructions to robot
+     * @param path
+     */
     private static void doThePath(int[] path) {
         algo.constructMap();
         ArrayList<PictureObstacle> map = Arena.getObstacles();
@@ -60,6 +68,11 @@ public class PathToCommand {
         }
     }
 
+    /**
+     * send instructions to robot; reverse and retake image if img recognition is null; send img result to android
+     * @param moveList
+     * @param i
+     */
     private static void sendMovesToRobot(ArrayList<MoveType> moveList, int i) {
         int tryCount = 4;
         ArrayList<MoveType> backwardMoveList;
@@ -91,6 +104,11 @@ public class PathToCommand {
         sendImageToAndroid(i, str);
     }
 
+    /**
+     * encode each robot move to string instructions
+     * @param moveList
+     * @return
+     */
     private static String encodeMoves(ArrayList<MoveType> moveList) {
         String commandsToSend = ":STM:0008,";
         INSTRUCTION_TYPE instructionType;
@@ -120,7 +138,10 @@ public class PathToCommand {
         return commandsToSend.substring(0, commandsToSend.length() - 1);
     }
 
-    // send to robot the completed list of paths.
+    /**
+     * send to robot the completed list of paths.
+     * @param cmd
+     */
     private static void sendToRobot(String cmd) {
         comm.sendMsg(cmd);
         String receiveMsg = null;
@@ -144,6 +165,11 @@ public class PathToCommand {
         }
     }
 
+    /**
+     * send img recognition result to android
+     * @param obstacleID
+     * @param image
+     */
     private static void sendImageToAndroid(int obstacleID, String image) {
         String msg;
         msg = ":AND:TARGET," + (obstacleID + 1) + "," + image;
@@ -155,6 +181,9 @@ public class PathToCommand {
         }
     }
 
+    /**
+     * send instruction to to rpi to take the image
+     */
     private static String takeImage() {
         comm.sendMsg(":IMG:scan");
         System.out.println("Scanning...");
@@ -166,6 +195,9 @@ public class PathToCommand {
         return receiveMsg;
     }
 
+    /**
+     * send the path to android to provide real time location update
+     */
     private static void sendPathToAndroid() {
         ArrayList<Node> path = algo.getNodePath();
         String pathString = ":AND:PATH,";
@@ -176,6 +208,9 @@ public class PathToCommand {
         comm.sendMsg(pathString);
     }
 
+    /**
+     * receive obstacle information (coord and facing) from android
+     */
     private static void recvObstacles() {
         String receiveMsg = null;
         System.out.println("Waiting to receive obstacle list...");

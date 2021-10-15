@@ -37,6 +37,9 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.function.UnaryOperator;
 
+/**
+ * Algorithm simulator with javaFX
+ */
 public class Simulator extends Application {
     private final int dim = MapConstants.ARENA_WIDTH;
     private final int scale = ViewConstants.SCALE;
@@ -217,8 +220,6 @@ public class Simulator extends Application {
 
     /**
      * Redraw the arena
-     *
-     * @return
      */
     private ImagePattern drawGridLines() {
         // draw the grid lines first

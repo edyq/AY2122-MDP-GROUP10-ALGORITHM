@@ -14,10 +14,16 @@ public class CommMgr {
 
     private static CommMgr instance;
 
+    /**
+     * dummy constructor
+     */
     private CommMgr() {
     }
 
-    // lazy initialization
+    /**
+     * initialization
+     * @return
+     */
     public static CommMgr getCommMgr() {
         if (instance == null) {
             instance = new CommMgr();
@@ -25,6 +31,10 @@ public class CommMgr {
         return instance;
     }
 
+    /**
+     * initiate socket connection with the rpi
+     * @return
+     */
     public boolean connectToRPi() {
         try {
             socket = new Socket(CommConstants.HOST_ADDRESS, CommConstants.PORT);
@@ -38,6 +48,10 @@ public class CommMgr {
         return false;
     }
 
+    /**
+     * terminate the socket connection with rpi
+     * @return
+     */
     public boolean endConnection() {
         try {
             socket.close();
@@ -51,6 +65,11 @@ public class CommMgr {
         }
     }
 
+    /**
+     * send message
+     * @param msg
+     * @return
+     */
     public boolean sendMsg(String msg) {
         try {
             System.out.println("Sending message: " + msg);
@@ -73,6 +92,10 @@ public class CommMgr {
         return false;
     }
 
+    /**
+     * receive message
+     * @return
+     */
     public String recieveMsg() {
         String msg = null;
         try {
