@@ -71,4 +71,24 @@ public class Robot {
     public void setDirection(ROBOT_DIRECTION direction) {
         this.direction = direction;
     }
+
+    public void setDirection(int angle) {
+        switch (angle) {
+            case 0:
+                direction = ROBOT_DIRECTION.EAST;
+                break;
+            case 90:
+                direction = ROBOT_DIRECTION.NORTH;
+                break;
+            case 180:
+                direction = ROBOT_DIRECTION.WEST;
+                break;
+            case 270:
+                direction = ROBOT_DIRECTION.SOUTH;
+                break;
+            default:
+                direction = ROBOT_DIRECTION.EAST;
+                break;
+        }
+    }
 }

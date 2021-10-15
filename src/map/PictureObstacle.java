@@ -11,13 +11,11 @@ public class PictureObstacle {
     private int imageId;
     private IMAGE_DIRECTION imageDirection;
     private Point centerCoordinate;
-    private int key;
 
-    public PictureObstacle(int x, int y, IMAGE_DIRECTION imageDirection, int key) {
+    public PictureObstacle(int x, int y, IMAGE_DIRECTION imageDirection) {
         this.imageDirection = imageDirection;
         this.centerCoordinate = new Point(x, y);
         imageId = 0;
-        this.key = key;
     }
 
     public int getImageId() {
@@ -66,10 +64,6 @@ public class PictureObstacle {
         return centerCoordinate.y;
     }
 
-    public int getKey() {
-        return key;
-    }
-
     public void setImageId(int imageId) {
         this.imageId = imageId;
     }
@@ -80,9 +74,5 @@ public class PictureObstacle {
 
     public void setCenterCoordinate(Point centerCoordinate) {
         this.centerCoordinate = centerCoordinate;
-    }
-
-    public void setKey(int key) {
-        this.key = key;
     }
 }
