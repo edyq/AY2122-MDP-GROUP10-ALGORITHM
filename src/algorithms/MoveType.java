@@ -1,5 +1,8 @@
 package algorithms;
 
+/**
+ * Abstract class for both movement types (Arc and Line)
+ */
 public abstract class MoveType {
     private double x1;
     private double y1;
@@ -52,18 +55,6 @@ public abstract class MoveType {
 
     public double getY2() {
         return y2;
-    }
-
-    public void reverse() { // for the last ending portion
-        double diff;
-        if (x1 == x2) {
-            diff = y2 - y1;
-            y2 = y1 - diff;
-        } else if (y1 == y2) {
-            diff = x2 - x1;
-            x2 = x1 - diff;
-        }
-        isReverse = !isReverse;
     }
 
     @Override

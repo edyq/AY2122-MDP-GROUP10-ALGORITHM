@@ -1,5 +1,8 @@
 package algorithms;
 
+/**
+ * This class represents the turning movement.
+ */
 public class ArcMove extends MoveType {
     private double radiusX;
     private double radiusY;
@@ -12,23 +15,38 @@ public class ArcMove extends MoveType {
         this.turnLeft = turnLeft;
     }
 
+    /**
+     * Get the x radius
+     */
     public double getRadiusX() {
         return radiusX;
     }
 
+    /**
+     * Get the y radius
+     */
     public double getRadiusY() {
         return radiusY;
     }
 
+    /**
+     * Check if the turn is a left turn (otherwise is a right turn)
+     */
     public boolean isTurnLeft() {
         return turnLeft;
     }
 
+    /**
+     * Return arc length
+     */
     @Override
     public double getLength() {
         return 2 * Math.PI * radiusX * 0.25;
     }
 
+    /**
+     * Return string of arc variables
+     */
     @Override
     public String toString() {
         if (turnLeft)

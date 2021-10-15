@@ -8,6 +8,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.IntStream;
 
+/**
+ * Algorithm class for calculating the shortest Hamiltonian path to each obstacle
+ */
 public class FastestPathAlgo {
 
     private final Arena arena;
@@ -16,6 +19,9 @@ public class FastestPathAlgo {
         this.arena = arena;
     }
 
+    /**
+     * Plan the fastest path and return as an array
+     */
     public int[] planFastestPath() {
         ArrayList<PictureObstacle> list = Arena.getObstacles();
         int[] indexArray = IntStream.range(0, list.size()).toArray();
@@ -57,18 +63,27 @@ public class FastestPathAlgo {
         return shortestPath;
     }
 
+    /**
+     * Get all the possible permutations
+     */
     private List<int[]> getPermutations(int[] nodes) {
         List<int[]> permutations = new ArrayList<>();
         generateHeapPermutations(nodes, permutations, nodes.length);
         return permutations;
     }
 
+    /**
+     * Helper function for generating permutations
+     */
     private void swap(int[] array, int index1, int index2) {
         int temp = array[index1];
         array[index1] = array[index2];
         array[index2] = temp;
     }
 
+    /**
+     * Generate the permutations heap
+     */
     private void generateHeapPermutations(int[] permutation, List<int[]> permutations, int n) {
         if (n <= 0) {
             permutations.add(permutation);

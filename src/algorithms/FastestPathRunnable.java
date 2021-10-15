@@ -6,6 +6,9 @@ import map.PictureObstacle;
 import java.util.ArrayList;
 import java.util.stream.IntStream;
 
+/**
+ * Used for multi-threading the different path calculations
+ */
 public class FastestPathRunnable implements Runnable {
     private double cost;
     private int[] order;
@@ -16,6 +19,9 @@ public class FastestPathRunnable implements Runnable {
         this.arena = arena;
     }
 
+    /**
+     * Do the fastest path calculation for the given permutation
+     */
     public void run() {
         ArrayList<PictureObstacle> list = Arena.getObstacles();
         TripPlannerAlgo algo = new TripPlannerAlgo(arena);

@@ -39,6 +39,9 @@ public class TripPlannerAlgo {
         return endPosition;
     }
 
+    /**
+     * Clear the map and any stored values
+     */
     public void clear() {
         predMap.clear();
         constructMap();
@@ -85,6 +88,9 @@ public class TripPlannerAlgo {
         return (int) Math.ceil(largestRadius / gridSize) + 1;
     }
 
+    /**
+     * Calculate the number of nodes required to turn in the Y direction
+     */
     private int calculateTurnSizeY() {
         double gridSize = MapConstants.OBSTACLE_WIDTH;
         // get the largest turn radius measure of the four measures
@@ -159,7 +165,6 @@ public class TripPlannerAlgo {
             this.totalCost += 9999;
             return null;
         }
-        //System.out.println(startX + ", " + startY + ", " + startAngle);
         clear();
         int endX, endY, endAngleDimension;
         ArrayList<MoveType> path = null;
@@ -188,8 +193,7 @@ public class TripPlannerAlgo {
         int[] forwardLocation, leftLocation, rightLocation, backwardLocation;
         int nextX, nextY, nextDim, currentTurnCount;
         double currentGCost, hCost, gCost;
-        // lets start searching, baby
-        // TODO: need a way to revisit nodes, especially if the goal is found but in an undesirable state (i.e. we are still making a turn)
+        // lets start searching
 
         int angleDimension = angleToDimension(startAngle);
 
@@ -228,7 +232,6 @@ public class TripPlannerAlgo {
 
                 // if we have already added this node, only change it if the newly found path is better.
                 if (gCost < nextNode.getGCost()) {
-                    //System.out.print("enter");
                     predMap.put(nextNode, currentNode);
                     nextNode.setCost(hCost, gCost); // set the cost for the next node and then add to the priority queue
                     visitQueue.add(nextNode);
@@ -303,7 +306,6 @@ public class TripPlannerAlgo {
     /**
      * Calculate the coordinates to reverse to
      */
-
     public void clearCost() {
         this.totalCost = 0;
     }
@@ -617,10 +619,10 @@ public class TripPlannerAlgo {
 
         int angleDimension, x, y, id;
         // set picture nodes to isObstacle = true
-        for (PictureObstacle pictures : pictureObstacleList) { //pictureObstacleMap.values()
+        for (PictureObstacle pictures : pictureObstacleList) {
             x = pictures.getX();
             y = pictures.getY();
-            id = pictureObstacleList.indexOf(pictures);//pictures.getKey();
+            id = pictureObstacleList.indexOf(pictures);
             angleDimension = angleToDimension(pictures.getImadeDirectionAngle()); // calculate the correct angle dimension the picture node is set in.
 
             grid[y][x][angleDimension].setPicture(true);
@@ -661,7 +663,6 @@ public class TripPlannerAlgo {
 
     /**
      * get the locations of the virtual obstacles in terms of pairs [x,y] given a specific x,y
-     * TODO: set thickness of virtual obstacles
      */
     private int[][] getVirtualObstaclePairs(int x, int y, int thickness) {
         int numCol = 1 + 2 * thickness;

@@ -7,7 +7,13 @@ import robot.RobotConstants;
 
 import java.util.ArrayList;
 
+/**
+ * Class for runnable function when doing multi-threading exhaustive search
+ */
 public class PathCostAlgo {
+    /**
+     * Calculate the path cost for a given permutation
+     */
     public double getPathCost(int[] path, ArrayList<PictureObstacle> list, TripPlannerAlgo algo, Arena arena) {
         //double pathDistance = 0.0;
         PictureObstacle next;
