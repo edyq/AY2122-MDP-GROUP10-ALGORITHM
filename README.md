@@ -10,4 +10,4 @@
 2. Launch ```GUI/Simulator.java```
 
 ### Contributions
-This project was created by Duan Yiting and Zachary Varella Lee.
+This module was created by Duan Yiting and Zachary Varella Lee.
