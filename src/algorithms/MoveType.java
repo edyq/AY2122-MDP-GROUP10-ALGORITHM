@@ -26,7 +26,9 @@ public abstract class MoveType {
         return x1;
     }
 
-    public boolean isReverse() { return isReverse; }
+    public boolean isReverse() {
+        return isReverse;
+    }
 
     public void setReverse(boolean reverse) {
         isReverse = reverse;
@@ -55,11 +57,11 @@ public abstract class MoveType {
     public void reverse() { // for the last ending portion
         double diff;
         if (x1 == x2) {
-            diff = y2-y1;
-            y2 = y1-diff;
+            diff = y2 - y1;
+            y2 = y1 - diff;
         } else if (y1 == y2) {
-            diff = x2-x1;
-            x2 = x1-diff;
+            diff = x2 - x1;
+            x2 = x1 - diff;
         }
         isReverse = !isReverse;
     }

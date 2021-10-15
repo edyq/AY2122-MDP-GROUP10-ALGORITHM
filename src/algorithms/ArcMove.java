@@ -1,6 +1,6 @@
 package algorithms;
 
-public class ArcMove extends MoveType{
+public class ArcMove extends MoveType {
     private double radiusX;
     private double radiusY;
     private boolean turnLeft;
@@ -26,7 +26,7 @@ public class ArcMove extends MoveType{
 
     @Override
     public double getLength() {
-        return 2*Math.PI*radiusX*0.25;
+        return 2 * Math.PI * radiusX * 0.25;
     }
 
     @Override

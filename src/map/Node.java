@@ -8,7 +8,6 @@ public class Node {
     private boolean hasBeenVisited;
     private int pictureId;
     private boolean isVirtualObstacle;
-    //private MapConstants.DIRECTION dir;
     private int x;
     private int y;
     private int dim; // what angle dimension is this node in
@@ -84,10 +83,6 @@ public class Node {
 
     public double getGCost() {
         return gCost;
-    }
-
-    public double gethCost() {
-        return hCost;
     }
 
     @Override

@@ -27,31 +27,31 @@ public class FastestPathAlgo {
         // 6: 22
         // 8: 21
         int size = permutations.size();
-            for (int i = 0; i<size; i+=numOfThreads) {
-                //double pathCost = getPathCost(permutation, list, algo);
-                Thread[] threads = new Thread[numOfThreads];
-                FastestPathRunnable[] runnables = new FastestPathRunnable[numOfThreads];
-                for (int j = 0; j < numOfThreads; j ++) {
-                    if (i + j < size) {
-                        runnables[j] = new FastestPathRunnable(permutations.get(i + j), arena);
-                        threads[j] = new Thread(runnables[j]);
-                        threads[j].start();
-                    }
+        for (int i = 0; i < size; i += numOfThreads) {
+            //double pathCost = getPathCost(permutation, list, algo);
+            Thread[] threads = new Thread[numOfThreads];
+            FastestPathRunnable[] runnables = new FastestPathRunnable[numOfThreads];
+            for (int j = 0; j < numOfThreads; j++) {
+                if (i + j < size) {
+                    runnables[j] = new FastestPathRunnable(permutations.get(i + j), arena);
+                    threads[j] = new Thread(runnables[j]);
+                    threads[j].start();
                 }
+            }
 
-                for (int j = 0; j < numOfThreads; j++) {
-                    if (i + j < size) {
-                        try {
-                            threads[j].join();
-                            if (runnables[j].getCost() < smallestCost) {
-                                smallestCost = runnables[j].getCost();
-                                shortestPath = runnables[j].getPath();
-                            }
-                        } catch (Exception e) {
-                            System.out.println("Exception occurred while joining thread: " + e);
+            for (int j = 0; j < numOfThreads; j++) {
+                if (i + j < size) {
+                    try {
+                        threads[j].join();
+                        if (runnables[j].getCost() < smallestCost) {
+                            smallestCost = runnables[j].getCost();
+                            shortestPath = runnables[j].getPath();
                         }
+                    } catch (Exception e) {
+                        System.out.println("Exception occurred while joining thread: " + e);
                     }
                 }
+            }
         }
         System.out.println("Shortest path cost: " + smallestCost);
         return shortestPath;

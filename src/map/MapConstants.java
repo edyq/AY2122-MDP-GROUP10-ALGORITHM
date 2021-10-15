@@ -6,8 +6,9 @@ public class MapConstants {
 
     public static final int ARENA_WIDTH = 200;
 
-    public enum IMAGE_DIRECTION{
+    public enum IMAGE_DIRECTION {
         NORTH, EAST, SOUTH, WEST;
+
         public static char print(IMAGE_DIRECTION d) {
             switch (d) {
                 case NORTH:

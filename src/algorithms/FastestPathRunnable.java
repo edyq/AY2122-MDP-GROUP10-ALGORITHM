@@ -10,21 +10,20 @@ public class FastestPathRunnable implements Runnable {
     private double cost;
     private int[] order;
     private Arena arena;
+
     public FastestPathRunnable(int[] order, Arena arena) {
         this.order = order;
         this.arena = arena;
     }
 
-    public void run()
-    {
+    public void run() {
         ArrayList<PictureObstacle> list = Arena.getObstacles();
         TripPlannerAlgo algo = new TripPlannerAlgo(arena);
         int[] indexArray = IntStream.range(0, list.size()).toArray();
         try {
             PathCostAlgo pathing = new PathCostAlgo();
             cost = pathing.getPathCost(order, list, algo, arena);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             // Throwing an exception
             e.printStackTrace();
             //System.out.println("Exception is caught");

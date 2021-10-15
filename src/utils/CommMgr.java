@@ -14,7 +14,8 @@ public class CommMgr {
 
     private static CommMgr instance;
 
-    private CommMgr() {}
+    private CommMgr() {
+    }
 
     // lazy initialization
     public static CommMgr getCommMgr() {
@@ -31,7 +32,7 @@ public class CommMgr {
             reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             System.out.println("Connection established with RPi");
             return true;
-        } catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return false;
@@ -78,9 +79,9 @@ public class CommMgr {
             msg = reader.readLine();
             return msg;
         } catch (IOException e) {
-           e.printStackTrace();
+            e.printStackTrace();
         } catch (Exception e) {
-           e.printStackTrace();
+            e.printStackTrace();
         }
         return null;
     }

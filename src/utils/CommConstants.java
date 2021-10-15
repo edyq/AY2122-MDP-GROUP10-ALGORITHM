@@ -2,11 +2,11 @@ package utils;
 
 /**
  * xxxy
- *
+ * <p>
  * x is the distance (in cm) or angle (in degrees),whether it’s distance or angle is depending on the direction
- *
+ * <p>
  * And y is the direction of motion
- *
+ * <p>
  * Values of y with their corresponding motions are:
  * 0, forwards
  * 1, backwards
@@ -18,7 +18,7 @@ package utils;
  * 7, stop movement for time specified by rpi
  * 8, reset front wheels (note that effectiveness of resetting wheels might depend on the ground type that the robot
  * is on, I haven’t had the chance to test it out extensively yet though)
- *
+ * <p>
  * Eg. 1000 is equal to 100 cm forwards
  * 1002 is equal to 100 degrees forward left
  * And special case 1007 is stop movement for 1 second (to get 1 second take the 100 before the direction number and
@@ -28,22 +28,6 @@ package utils;
 public class CommConstants {
     public static final String HOST_ADDRESS = "192.168.10.1";
     public static final int PORT = 5000;
-
-    public enum HEADER {
-        ANDROID, STM, IMAGE;
-        public static String encode(CommConstants.HEADER i) {
-            switch(i) {
-                case ANDROID:
-                    return ":AND:";
-                case STM:
-                    return ":STM:";
-                case IMAGE:
-                    return ":IMG:";
-                default:
-                    return null;
-            }
-        }
-    }
 
     public enum INSTRUCTION_TYPE {
         FORWARD, BACKWARD, FORWARD_LEFT, FORWARD_RIGHT, BACKWARD_LEFT, BACKWARD_RIGHT, SPECIAL, STOP_AFTER, RESET_WHEELS;
