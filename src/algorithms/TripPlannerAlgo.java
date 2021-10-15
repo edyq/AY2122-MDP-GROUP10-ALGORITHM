@@ -662,7 +662,7 @@ public class TripPlannerAlgo {
         //    System.out.println("<" + i.getX() + ", " + i.getY() + ">");
         //}
 
-        //for (MoveType i : pathSegments) System.out.println(i.toString());
+        for (MoveType i : pathSegments) System.out.println(i.toString());
 
         return pathSegments;
     }
@@ -673,11 +673,12 @@ public class TripPlannerAlgo {
 
     private boolean isValidLocation(int x, int y, int dim) {
         if (x >= 0 && x < numCells && y >= 0 && y < numCells) {
-            Node n = grid[y][x][dim];
-            return canVisit(n);
-        } else {
-            return false;
+            if (y>=MapConstants.ARENA_BORDER_SIZE && y<=numCells-MapConstants.ARENA_BORDER_SIZE) {
+                Node n = grid[y][x][dim];
+                return canVisit(n);
+            }
         }
+        return false;
     }
 
     /**
