@@ -209,7 +209,7 @@ public class Simulator extends Application {
             n = pictureList.get(i);
             text += "<" + n.getX() + ", " + n.getY() + ">, ";
             moveList.add(algo.planPath(startCoords[0], startCoords[1], startCoords[2], n.getX(), n.getY(), n.getImadeDirectionAngle(), true, true, true));
-            startCoords = algo.getEndPosition();//algo.getReverseCoordinates(n);
+            startCoords = algo.getEndPosition();
         }
 
         label.setText(text);
@@ -245,22 +245,24 @@ public class Simulator extends Application {
 
     private SequentialTransition getPathAnimation(Rectangle robot, ArrayList<ArrayList<MoveType>> pathList) {
         //Creating a Path
-        //Path path = new Path();
         SequentialTransition seqT = new SequentialTransition();
-        //Moving to the starting point
-        MoveType start = pathList.get(0).get(0);
-        int startDir;
         double radiusY, radiusX;
-        double nextX = start.getX1() * scale;
-        double nextY = start.getY1() * scale;
-        double duration, lineLength;
+        double nextX;
+        double nextY;
+        double duration;
         int endDir;
 
         ArrayList<MoveType> paths;
         int len = pathList.size();
         for (int i = 0; i < len; i++) {
             paths = pathList.get(i);
-            startDir = paths.get(0).getDirInDegrees();
+            if (paths == null) { // handle unreachable pictures
+                PauseTransition pauseTransition = new PauseTransition(Duration.millis(1));
+                seqT.getChildren().add(pauseTransition);
+                continue;
+            }
+            nextX = paths.get(0).getX1() * scale;
+            nextY = paths.get(0).getY1() * scale;
             for (MoveType move : paths) {
                 Path path = new Path();
                 PathTransition pathTransition = new PathTransition();
@@ -317,7 +319,6 @@ public class Simulator extends Application {
                             turn.setRadiusY(radiusY);
                         }
                     }
-                    startDir = move.getDirInDegrees();
                     path.getElements().add(turn);
                     pathTransition.setPath(path);
                 }
@@ -331,20 +332,6 @@ public class Simulator extends Application {
             }
         }
         return seqT;
-    }
-
-    public ImagePattern createGridPattern(GraphicsContext gc) {
-
-        double w = arenaSize;
-        double h = arenaSize;
-
-        gc.setStroke(Color.BLACK);
-        gc.setFill(Color.LIGHTGRAY.deriveColor(1, 1, 1, 0.2));
-        gc.fillRect(0, 0, w, h);
-        gc.strokeRect(0, 0, w, h);
-
-        return null;
-
     }
 
     private void addObstacle(Pane arenaPane, int x, int y, IMAGE_DIRECTION dir) {
