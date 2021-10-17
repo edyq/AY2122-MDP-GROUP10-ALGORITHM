@@ -2,7 +2,7 @@ package map;
 
 public class MapConstants {
     public static final int OBSTACLE_WIDTH = 10;
-    public static final int ARENA_BORDER_SIZE = 1;
+    public static final int ARENA_BORDER_SIZE = 0;
 
     public static final int ARENA_WIDTH = 200;
 

@@ -300,12 +300,22 @@ public class Simulator extends Application {
                     turn.setY(move.getY2() * scale);
                     if (arc.isTurnLeft()) {
                         turn.setSweepFlag(false);
-                        turn.setRadiusX(radiusY);
-                        turn.setRadiusY(radiusX);
+                        if (endDir == 90 || endDir == 270) {
+                            turn.setRadiusX(radiusX);
+                            turn.setRadiusY(radiusY);
+                        } else {
+                            turn.setRadiusX(radiusY);
+                            turn.setRadiusY(radiusX);
+                        }
                     } else {
                         turn.setSweepFlag(true);
-                        turn.setRadiusX(radiusX);
-                        turn.setRadiusY(radiusY);
+                        if (endDir == 180 || endDir == 0) {
+                            turn.setRadiusX(radiusY);
+                            turn.setRadiusY(radiusX);
+                        } else {
+                            turn.setRadiusX(radiusX);
+                            turn.setRadiusY(radiusY);
+                        }
                     }
                     startDir = move.getDirInDegrees();
                     path.getElements().add(turn);
